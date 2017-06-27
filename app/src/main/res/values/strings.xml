@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">TFGDrone3</string>
+    <string name="dji_sdk_app_key">0a904d76eada141e59029cbb</string>
+</resources>
