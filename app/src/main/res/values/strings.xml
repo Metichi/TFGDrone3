@@ -1,4 +1,12 @@
 <resources>
     <string name="app_name">TFGDrone3</string>
     <string name="dji_sdk_app_key">0a904d76eada141e59029cbb</string>
+
+    <!-- Main Activity Strings-->
+    <string name="sdkVersion_label">SDK Version: </string>
+    <string name="noConectado">No conectado</string>
+    <string name="crearRuta">Crear Ruta</string>
+    <string name="cargarRuta">Cargar Ruta</string>
+    <string name="ajustes">Ajustes</string>
+    <string name="conectarDrone">Conectar a dispositivo</string>
 </resources>

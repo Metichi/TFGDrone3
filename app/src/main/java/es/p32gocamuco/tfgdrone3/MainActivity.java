@@ -1,4 +1,20 @@
+/*
+    Main Activity
+    Se trata del menú principal de la aplicación y la actividad que se ejecutará al iniciarla.
+    Contiene botones hacia las siguientes actividades:
+        - Diseñar una ruta
+        - Cargar una ruta
+        - Ajustes de la aplicación
+        - Establecer conexión con el dispositivo
+
+    Además, mostrará información sobre:
+        - Versión del SDK
+        - Estado de conexión con el dispositivo y, en caso de estar conectado, su nombre.
+ */
+
 package es.p32gocamuco.tfgdrone3;
+// TODO: Crear botones funcionales que lleven a otras actividades
+// TODO: Cambiar el estado de botones para mostrar la conexión o activación de la app
 
 import android.content.Intent;
 import android.os.Handler;
@@ -6,7 +22,10 @@ import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import org.w3c.dom.Text;
 
 import dji.common.error.DJIError;
 import dji.common.error.DJISDKError;
@@ -20,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
     private static BaseProduct mProduct;
     private Handler mHandler;
 
+    private TextView sdkVersion;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
         //Initialize DJI SDK Manager
         mHandler = new Handler(Looper.getMainLooper());
         DJISDKManager.getInstance().registerApp(this,mSDKManagerCallback);
+        sdkVersion = (TextView) findViewById(R.id.sdkVersion);
+        sdkVersion.setText(DJISDKManager.getInstance().getSDKVersion());
     }
 
     //Generamos un SDKManagerCallback para implementar los métodos que actúan en el registro y que gestionan la conexión del producto
@@ -53,7 +76,11 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
             }
-            Log.e("TAG",djiError.toString());
+            try {
+                Log.e("TAG", djiError.toString());
+            } catch (java.lang.NullPointerException excepcion) {
+                Log.e("TAG", "Error desconocido");
+            }
         }
 
         @Override
