@@ -13,15 +13,16 @@
  */
 
 package es.p32gocamuco.tfgdrone3;
-// TODO: Crear botones funcionales que lleven a otras actividades
-// TODO: Cambiar el estado de botones para mostrar la conexión o activación de la app
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,13 +34,16 @@ import dji.sdk.base.BaseComponent;
 import dji.sdk.base.BaseProduct;
 import dji.sdk.sdkmanager.DJISDKManager;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String activityName = MainActivity.class.getName();
     private static final String FLAG_CONNECTION_CHANGE = "dji_sdk_connection_change";
     private static BaseProduct mProduct;
     private Handler mHandler;
 
-    private TextView sdkVersion;
+    private TextView sdkVersion, modeloDispositivo;
+    private Button btnDRuta, btnCRuta;
+    private Button btnSettings, btnDroneStatus;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,9 +52,12 @@ public class MainActivity extends AppCompatActivity {
 
         //Initialize DJI SDK Manager
         mHandler = new Handler(Looper.getMainLooper());
-        DJISDKManager.getInstance().registerApp(this,mSDKManagerCallback);
+        if(!DJISDKManager.getInstance().hasSDKRegistered()) {
+            DJISDKManager.getInstance().registerApp(this, mSDKManagerCallback);
+        }
         sdkVersion = (TextView) findViewById(R.id.sdkVersion);
-        sdkVersion.setText(DJISDKManager.getInstance().getSDKVersion());
+
+        initUI();
     }
 
     //Generamos un SDKManagerCallback para implementar los métodos que actúan en el registro y que gestionan la conexión del producto
@@ -110,6 +117,11 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onConnectivityChange(boolean isConnected) {
             notifyStatusChange();
+            if (isConnected){
+                modeloDispositivo.setText(mProduct.getModel().toString());
+            } else {
+                modeloDispositivo.setText(R.string.noConectado);
+            }
         }
     };
 
@@ -126,4 +138,61 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    protected void initUI(){
+        sdkVersion = (TextView) findViewById(R.id.sdkVersion);
+        modeloDispositivo = (TextView) findViewById(R.id.dispositivo);
+        btnDRuta = (Button) findViewById(R.id.crearRuta);
+        btnCRuta = (Button) findViewById(R.id.cargarRuta);
+        btnSettings = (Button) findViewById(R.id.appSettings);
+        btnDroneStatus = (Button) findViewById(R.id.droneConnect);
+
+        //Obtenemos la versión del SDK para mostrarla en pantalla
+        sdkVersion.setText(DJISDKManager.getInstance().getSDKVersion());
+
+        //Obtenemos el nombre del dispositivo
+
+        if (mProduct != null) {
+            if (mProduct.isConnected()) {
+                modeloDispositivo.setText(mProduct.getModel().toString());
+            } else {
+                modeloDispositivo.setText(R.string.noConectado);
+            }
+        } else {
+            modeloDispositivo.setText(R.string.noDispositivo);
+        }
+
+        btnDRuta.setOnClickListener(this);
+        btnCRuta.setOnClickListener(this);
+        btnSettings.setOnClickListener(this);
+        btnDroneStatus.setOnClickListener(this);
+    }
+    @Override
+    public void onClick(View v){
+        Intent intent;
+
+        switch (v.getId()){
+            case R.id.crearRuta:
+                intent = new Intent(this,CrearRuta.class);
+                startActivity(intent);
+                break;
+
+            case R.id.cargarRuta:
+                intent = new Intent(this,CargarRuta.class);
+                startActivity(intent);
+                break;
+
+            case R.id.appSettings:
+                intent = new Intent(this,SettingsActivity.class);
+                startActivity(intent);
+                break;
+
+            case R.id.droneConnect:
+                intent = new Intent(this,DroneConnect.class);
+                startActivity(intent);
+                break;
+
+            default:
+                break;
+        }
+    }
 }
