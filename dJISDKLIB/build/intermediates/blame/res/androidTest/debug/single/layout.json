@@ -1,10 +1,18 @@
 [
     {
-        "merged": "D:\\androidapps\\TFGDrone3\\dJISDKLIB\\build\\intermediates\\res\\merged\\androidTest\\debug\\layout\\dialog_login.xml",
-        "source": "D:\\androidapps\\TFGDrone3\\dJISDKLIB\\build\\intermediates\\bundles\\debug\\res\\layout\\dialog_login.xml"
+        "merged": "/home/metichi/TFGDrone3/dJISDKLIB/build/intermediates/res/merged/androidTest/debug/layout/log_dialog_view.xml",
+        "source": "/home/metichi/TFGDrone3/dJISDKLIB/build/intermediates/bundles/debug/res/layout/log_dialog_view.xml"
     },
     {
-        "merged": "D:\\androidapps\\TFGDrone3\\dJISDKLIB\\build\\intermediates\\res\\merged\\androidTest\\debug\\layout\\log_dialog_view.xml",
-        "source": "D:\\androidapps\\TFGDrone3\\dJISDKLIB\\build\\intermediates\\bundles\\debug\\res\\layout\\log_dialog_view.xml"
+        "merged": "/home/metichi/TFGDrone3/dJISDKLIB/build/intermediates/res/merged/androidTest/debug/layout/dialog_login.xml",
+        "source": "/home/metichi/TFGDrone3/dJISDKLIB/build/intermediates/bundles/debug/res/layout/dialog_login.xml"
+    },
+    {
+        "merged": "/home/metichi/TFGDrone3/D:\\androidapps\\TFGDrone3\\dJISDKLIB\\build\\intermediates\\res\\merged\\androidTest\\debug\\layout\\dialog_login.xml",
+        "source": "/home/metichi/TFGDrone3/D:\\androidapps\\TFGDrone3\\dJISDKLIB\\build\\intermediates\\bundles\\debug\\res\\layout\\dialog_login.xml"
+    },
+    {
+        "merged": "/home/metichi/TFGDrone3/D:\\androidapps\\TFGDrone3\\dJISDKLIB\\build\\intermediates\\res\\merged\\androidTest\\debug\\layout\\log_dialog_view.xml",
+        "source": "/home/metichi/TFGDrone3/D:\\androidapps\\TFGDrone3\\dJISDKLIB\\build\\intermediates\\bundles\\debug\\res\\layout\\log_dialog_view.xml"
     }
 ]
