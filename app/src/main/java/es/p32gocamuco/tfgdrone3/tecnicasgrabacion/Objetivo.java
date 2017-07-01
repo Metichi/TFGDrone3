@@ -1,6 +1,7 @@
 package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.maps.android.SphericalUtil;
 
 /**
  * Created by Manuel Gómez Castro on 1/07/17.
@@ -53,5 +54,15 @@ public class Objetivo {
     }
     public void setAltura(double height){
         altura = height;
+    }
+
+    public void desplazar(double distancia,double direccion){
+        /*
+        Desplaza el objetivo una distancia en metros a lo largo de la dirección especificada.
+        La dirección es 0º norte, 90 este, 180 sur y 270 oeste.
+         */
+
+        LatLng nPos = SphericalUtil.computeOffset(this.getLatLng(),distancia,direccion);
+        posicion = nPos;
     }
 }

@@ -4,7 +4,10 @@ import android.support.annotation.FloatRange;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import dji.sdk.flightcontroller.FlightController;
 
 /**
  * Created by Manuel Gomez Castro on 29/06/2017.
@@ -20,16 +23,34 @@ import java.util.List;
  */
 
 public abstract class TecnicaGrabacion {
-    private LatLng coordObjetivo;
-    private Float alturaObjetivo;
+    private ArrayList<Objetivo> objetivos = new ArrayList<>(0);
+    private ArrayList<Camara> camaras = new ArrayList<>(0);
 
-    private class EstadoCamara {
-        private List<LatLng> coordCamara;
-        private List<Float> alturaCamara;
+    //Debemos inicializar el elemento de tiempos con el 0 siempre, y mostrar el tiempo absoluto en segundos.
+    private ArrayList<Double> tiempos = new ArrayList<>(0);
 
-
+    public TecnicaGrabacion(Objetivo o){
+        objetivos.add(o);
     }
 
-    public abstract float calcularDistanciaCamara();
-    
+    public void addObjetivo(Objetivo o){
+        objetivos.add(o);
+    }
+    public void quitarObjetivoN(int n){
+        objetivos.remove(n);
+    }
+    public void reemplazarObjetivo(Objetivo o, int n){
+        objetivos.set(n,o);
+    }
+
+    abstract public void calcularRuta();
+
+    public void borrarRuta(){
+        camaras.clear();
+    }
+    public void borrarTecnica(){
+        camaras.clear();
+        objetivos.clear();
+    }
+
 }
