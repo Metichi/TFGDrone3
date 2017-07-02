@@ -1,7 +1,10 @@
 package es.p32gocamuco.tfgdrone3;
 
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -10,7 +13,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
+public class CrearRuta extends FragmentActivity implements OnMapReadyCallback, View.OnClickListener {
 
     private GoogleMap mMap;
 
@@ -22,8 +25,19 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        initUI();
     }
 
+    private void initUI() {
+        Button addBtn, calcBtn, saveBtn;
+        addBtn = (Button) findViewById(R.id.addCR);
+        calcBtn = (Button) findViewById(R.id.calcRutaCR);
+        saveBtn= (Button) findViewById(R.id.saveCR);
+
+        addBtn.setOnClickListener(this);
+        calcBtn.setOnClickListener(this);
+        saveBtn.setOnClickListener(this);
+    }
 
     /**
      * Manipulates the map once available.
@@ -42,5 +56,18 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
         LatLng sydney = new LatLng(-34, 151);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+    }
+
+    @Override
+    // TODO: Implementar funcionalidad para los botones.
+    public void onClick(View view) {
+        switch (view.getId()){
+            case R.id.addCR:
+                break;
+            case R.id.saveCR:
+                break;
+            case R.id.calcRutaCR:
+                break;
+        }
     }
 }

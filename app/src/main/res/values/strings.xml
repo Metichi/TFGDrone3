@@ -88,4 +88,7 @@
 
     <!-- Crear rutas-->
     <string name="ya_grabando">Grabacion ya en curso</string>
+    <string name="addCR">Añadir</string>
+    <string name="calcularCR">Calcular ruta</string>
+    <string name="saveCR">Guardar</string>
 </resources>
