@@ -1,10 +1,13 @@
 package es.p32gocamuco.tfgdrone3;
 
+import android.content.DialogInterface;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ScrollView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -16,6 +19,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class CrearRuta extends FragmentActivity implements OnMapReadyCallback, View.OnClickListener {
 
     private GoogleMap mMap;
+    AlertDialog alertdialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,11 +67,47 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback, V
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.addCR:
+                displayAddMenu();
                 break;
             case R.id.saveCR:
                 break;
             case R.id.calcRutaCR:
                 break;
         }
+    }
+
+    public void displayAddMenu(){
+        ScrollView addMenu = (ScrollView)getLayoutInflater().inflate(R.layout.add_menu, null);
+        Button addHome = (Button) addMenu.findViewById(R.id.addHome);
+        Button addAcimutal = (Button) addMenu.findViewById(R.id.addAcimutal);
+
+        addHome.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                alertdialog.dismiss();
+                //TODO: Añade un botón de home cuando se pulse y elimina el anterior si existiera
+
+            }
+        });
+        addAcimutal.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                alertdialog.dismiss();
+                //TODO: Añade una tecnica acimutal a la ruta de grabacion y muestra el menú con los parámetros generales.
+            }
+        });
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(R.string.addItemtoMapTitle);
+                builder.setView(addMenu);
+                builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.cancel();
+                    }
+                });
+
+        alertdialog = builder.create();
+        alertdialog.show();
     }
 }

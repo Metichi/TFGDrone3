@@ -1,5 +1,6 @@
 package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
 
+import android.content.Context;
 import android.location.Location;
 import android.support.annotation.Nullable;
 
@@ -23,26 +24,34 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
     private boolean comienzaGrabando = false;
 
 
+    public TecnicaAcimutal(){
 
-    public TecnicaAcimutal(double altura, double orientacion, boolean sigue){
-        alturaSobreObjetivo = altura;
-        orientacionNESO = orientacion;
-        orientacionSegunObjetivo = sigue;
-    }
-    public TecnicaAcimutal(TecnicaGrabacion tecnicaAnterior,double altura, double orientacion, boolean sigue){
-        this(altura,orientacion,sigue);
-        comienzaGrabando = tecnicaAnterior.finalizaGrabando();
     }
 
     @Override
     public void addObjetivo(Objetivo o) {
         puntosInteres.add(o);
+
+        //Al añadir un punto, nos aseguramos de que la acción que sigue sea continuar la grabación si se estaba grabando.
+        Objetivo puntoAnterior;
+        Objetivo puntoActual = puntosInteres.get(puntosInteres.size()-1);
+        if(puntosInteres.size()>1){
+            puntoAnterior = puntosInteres.get(puntosInteres.size()-2);
+            if(puntoAnterior.getAccion() == Acciones.INICIA_GRABACION ||
+                    puntoAnterior.getAccion() == Acciones.CONTINUA_GRABACION){
+                puntoActual.setAccion(Acciones.CONTINUA_GRABACION);
+            }
+        } else{
+            if(comienzaGrabando){
+                puntoActual.setAccion(Acciones.CONTINUA_GRABACION);
+            }
+        }
     }
 
     @Override
     public void calcularRuta() {
         ListIterator<Objetivo> iteradorObjetivo = puntosInteres.listIterator();
-        ListIterator<Camara> iteradorCamara;
+        ListIterator<Camara> iteradorCamara; //No se define el iterador todavía porque aún no se ha calculado la posición de las cámaras.
         Camara camaraActual;
         Camara camaraSiguiente;
         Objetivo objetivoActual;
@@ -139,23 +148,7 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
         }
     }
     private boolean checkIfGrabacionEnCurso(Objetivo o){
-        int indiceActual = puntosInteres.indexOf(o);
-        ListIterator<Objetivo> iterador = puntosInteres.listIterator(indiceActual);
-        boolean grabacionEncurso = false;
-
-        while (iterador.hasPrevious()){
-            if(iterador.previous().getAccion() == Acciones.INICIA_GRABACION){
-                grabacionEncurso = true;
-                break;
-            }
-        }
-        while(iterador.nextIndex()<indiceActual){
-            if(iterador.next().getAccion()== Acciones.DETENER_GRABACION){
-                grabacionEncurso = false;
-                break;
-            }
-        }
-        return grabacionEncurso;
+        return o.getAccion() == Acciones.CONTINUA_GRABACION || o.getAccion() == Acciones.INICIA_GRABACION;
     }
 
     @Override
@@ -185,12 +178,22 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
 
     @Override
     public void borrarRuta() {
-        puntosInteres.clear();
         posicionCamara.clear();
     }
 
     @Override
+    public void comienzaGrabando(boolean grabando) {
+        comienzaGrabando = grabando;
+    }
+
+    @Override
     public boolean finalizaGrabando() {
-        return (checkIfGrabacionEnCurso(puntosInteres.get(puntosInteres.size())) || puntosInteres.get(puntosInteres.size()).getAccion()==Acciones.INICIA_GRABACION);
+        Objetivo ultimoPunto = puntosInteres.get(puntosInteres.size());
+        return ((ultimoPunto.getAccion() == Acciones.CONTINUA_GRABACION) || (ultimoPunto.getAccion() == Acciones.INICIA_GRABACION));
+    }
+
+    @Override
+    public void showTechniqueSettingsMenu(Context context) {
+
     }
 }

@@ -14,10 +14,11 @@ public class Objetivo {
 
     public enum Acciones{
         INICIA_GRABACION,
+        CONTINUA_GRABACION,
         DETENER_GRABACION,
         TOMAR_FOTO,
         NADA,
-        GRABAR
+        GRABAR_ESTE_PUNTO
     }
     private Acciones accion = Acciones.NADA;
 

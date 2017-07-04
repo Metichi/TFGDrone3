@@ -1,5 +1,6 @@
 package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
 
+import android.content.Context;
 import android.support.annotation.Nullable;
 import static es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Objetivo.Acciones;
 import java.util.ArrayList;
@@ -19,5 +20,9 @@ interface TecnicaGrabacion {
     Camara[] verRuta();
     void borrarRuta();
     void setAccionEnObjetivo(Objetivo o, Acciones a);
+
+    void comienzaGrabando(boolean grabando);
     boolean finalizaGrabando();
+
+    void showTechniqueSettingsMenu(Context context);
 }
