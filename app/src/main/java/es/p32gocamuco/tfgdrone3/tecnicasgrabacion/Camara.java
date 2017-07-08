@@ -28,20 +28,20 @@ public class Camara extends Objetivo {
 
     public Camara(){
         super();
-        pitch = 0;
-        yaw = 0;
-        roll = 0;
+        this.pitch = 0;
+        this.yaw = 0;
+        this.roll = 0;
     }
-    public Camara(double latitud, double longitud, double height, double ptch, double yw, double rll,double t){
-        super(latitud,longitud,height,t);
-        initPitchYawRoll(ptch,yw,rll);
-    }
+
     public Camara(LatLng latlng, double height, double ptch, double yw, double rll,double t){
         super(latlng,height,t);
         initPitchYawRoll(ptch,yw,rll);
     }
     public Camara(Objetivo o){
-        super(o.getLatLng(),o.getAltura(),o.getTiempo());
+        super(o.getLatLng(),o.getHeight(),o.getTime());
+        this.pitch = 0;
+        this.yaw = 0;
+        this.roll = 0;
     }
 
     private void initPitchYawRoll(double ptch, double yw, double rll){
@@ -68,7 +68,7 @@ public class Camara extends Objetivo {
 
     public void enfocaOjbetivo(Objetivo o){
         float[] resultado = new float[2];
-        double incrementoAltura = this.getAltura()-o.getAltura();
+        double incrementoAltura = this.getHeight()-o.getHeight();
 
         if (incrementoAltura>=0) {
 
@@ -125,14 +125,14 @@ public class Camara extends Objetivo {
         /* Calculamos la velocidad que haría falta para llegar hasta un objetivo (o camara) desde nuestro tiempo
             hasta el tiempo que pide el objetivo
          */
-        if(o.getTiempo()<= this.getTiempo()){
+        if(o.getTime()<= this.getTime()){
             throw new IllegalArgumentException("La camara no puede viajar atras en el tiempo");
         } else {
             float[] resultado = new float[2];
             Location.distanceBetween(this.getLatitude(),this.getLongitude(),o.getLatitude(),o.getLongitude(),resultado);
             velocidad.setVelocidadNESO(resultado[1]);
             velocidad.setDireccion(resultado[2]);
-            velocidad.setVertical((o.getAltura()-this.getAltura()/(o.getTiempo()-this.getTiempo())));
+            velocidad.setVertical((o.getHeight()-this.getHeight()/(o.getTime()-this.getTime())));
         }
     }
 

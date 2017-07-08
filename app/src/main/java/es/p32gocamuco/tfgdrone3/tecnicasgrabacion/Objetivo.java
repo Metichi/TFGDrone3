@@ -1,6 +1,8 @@
 package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.SphericalUtil;
 
 /*
@@ -8,9 +10,11 @@ import com.google.maps.android.SphericalUtil;
  */
 
 public class Objetivo {
-    private LatLng posicion; //Posición del objeto, en latitud y longitud.
-    private double altura; //Altura del objeto desde el sistema de referencia (ej: suelo)
-    private double tiempo; //Tiempo en el que se utiliza este objeto relativo al inicio de la sesion
+    private double height; //Altura del objeto desde el sistema de referencia (ej: suelo)
+    private double time; //Tiempo en el que se utiliza este objeto relativo al inicio de la sesion
+    private Marker marker;
+    private MarkerOptions markerOptions; //Almacena la posición del objetivo.
+    private TecnicaGrabacion currentTechnique;
 
     public enum Acciones{
         INICIA_GRABACION,
@@ -24,60 +28,69 @@ public class Objetivo {
 
 
     public Objetivo(){
-        posicion = new LatLng(0,0);
-        altura = 0d;
-        tiempo=0;
+        LatLng position = new LatLng(0,0);
+        this.height = 0d;
+        time =0;
+        markerOptions = new MarkerOptions();
+        markerOptions.position(position);
     }
-    public Objetivo(double latitude, double longitude, double height,double t){
-        posicion = new LatLng(latitude, longitude);
-        altura = height;
-        tiempo = t;
-    }
+
     public Objetivo(LatLng latlng, double height,double t){
-        posicion = latlng;
-        altura = height;
-        tiempo = t;
+        this.height = height;
+        this.time = t;
+        this.markerOptions = new MarkerOptions();
+        this.markerOptions.position(latlng);
     }
 
     public double getLatitude(){
-        return posicion.latitude;
+        return this.markerOptions.getPosition().latitude;
     }
     public double getLongitude(){
-        return posicion.longitude;
+        return this.markerOptions.getPosition().longitude;
     }
     public LatLng getLatLng(){
-        return posicion;
+        return this.markerOptions.getPosition();
     }
-    public double getAltura(){
-        return altura;
+    public double getHeight(){
+        return height;
     }
-    public double getTiempo() {return tiempo;}
+    public double getTime() {return time;}
 
     public Acciones getAccion() {
         return accion;
     }
 
-    public void setPosicion(LatLng newPos){
-        posicion = newPos;
+    public void setPosition(LatLng newPos){
+        this.markerOptions.position(newPos);
     }
-    public void setPosicion(double latitude, double longitude){
-        posicion = new LatLng(latitude,longitude);
-    }
+
     public void setLatitude(double latitude){
-        double oldLong = posicion.longitude;
-        posicion = new LatLng(latitude,oldLong);
+        double oldLong = this.markerOptions.getPosition().longitude;
+        LatLng position = new LatLng(latitude,oldLong);
+        this.markerOptions.position(position);
     }
     public void setLongitude(double longitude){
-        double oldLat = posicion.latitude;
-        posicion = new LatLng(oldLat,longitude);
+        double oldLat = this.markerOptions.getPosition().latitude;
+        LatLng position = new LatLng(oldLat,longitude);
+        this.markerOptions.position(position);
     }
-    public void setAltura(double height){
-        altura = height;
+    public void setHeight(double height){
+        this.height = height;
     }
-    public void setTiempo(double t) {tiempo=t;}
+    public void setTime(double t) {
+        this.time =t;}
 
     public void setAccion(Acciones accion) {
         this.accion = accion;
+    }
+
+    public Marker getMarker() {
+        return marker;
+    }
+
+    public void setMarker(Marker marker) {
+        this.marker = marker;
+        marker.setTag(this);
     }
 
     public void desplazar(double distancia, double direccion){
@@ -85,6 +98,15 @@ public class Objetivo {
         Desplaza el objetivo una distancia en metros a lo largo de la dirección especificada.
         La dirección es 0º norte, 90 este, 180 sur y 270 oeste.
          */
-        posicion = SphericalUtil.computeOffset(this.getLatLng(),distancia,direccion);
+        LatLng position = SphericalUtil.computeOffset(this.getLatLng(),distancia,direccion);
+        this.markerOptions.position(position);
+    }
+
+    public void setCurrentTechnique(TecnicaGrabacion currentTechnique) {
+        this.currentTechnique = currentTechnique;
+    }
+
+    public TecnicaGrabacion getCurrentTechnique() {
+        return currentTechnique;
     }
 }

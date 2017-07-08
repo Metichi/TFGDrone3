@@ -94,4 +94,12 @@
     <string name="addHome">Localización Home</string>
     <string name="addAcimutal">Tecnica Acimutal</string>
     <string name="addItemtoMapTitle">Añadir objeto al mapa</string>
+
+    <!-- Tecnica Acimutal-->
+    <string name="sigueRutaTrue">Orientacion según ruta</string>
+    <string name="sigueRutaFalse">Orientación personalizada</string>
+    <string name="alturaSobreObjetivoLabel">Altura en metros sobre el objetivo</string>
+    <string name="orientacionNESOLabel">0º Norte, 90º este, 180º sur, 270º oeste</string>
+    <string name="orientacionLabel">Orientación</string>
+    <string name="orientacionHint">Entre 0 y 360</string>
 </resources>

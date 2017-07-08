@@ -1,6 +1,7 @@
 package es.p32gocamuco.tfgdrone3;
 
 import android.content.DialogInterface;
+import android.content.IntentSender;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -8,6 +9,7 @@ import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ScrollView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -16,10 +18,18 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Objetivo;
+import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.RecordingRoute;
+import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.TecnicaAcimutal;
+import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.TecnicaGrabacion;
+
 public class CrearRuta extends FragmentActivity implements OnMapReadyCallback, View.OnClickListener {
 
     private GoogleMap mMap;
     AlertDialog alertdialog;
+    RecordingRoute recordingRoute = new RecordingRoute(); //TODO: Esta iniciación sólo es valida si se viene del menú principal. Si se viene de cargar ruta, hay que iniciar con la ruta correspondiente.
+    Objetivo home;
+    TecnicaAcimutal newTechnique;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,10 +39,12 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback, V
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
         initUI();
     }
 
     private void initUI() {
+        setTitle(recordingRoute.getName());
         Button addBtn, calcBtn, saveBtn;
         addBtn = (Button) findViewById(R.id.addCR);
         calcBtn = (Button) findViewById(R.id.calcRutaCR);
@@ -60,6 +72,12 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback, V
         LatLng sydney = new LatLng(-34, 151);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        try {
+            mMap.setMyLocationEnabled(true);
+        } catch (SecurityException e){
+            Toast toast =  Toast.makeText(this,"No hay permisos para obtener localización",Toast.LENGTH_SHORT);
+            toast.show();
+        }
     }
 
     @Override
@@ -70,8 +88,19 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback, V
                 displayAddMenu();
                 break;
             case R.id.saveCR:
+                recordingRoute.saveRoute();
                 break;
             case R.id.calcRutaCR:
+                recordingRoute.calculateRoute(); //TODO: Cuando la ruta está calculada, reemplazar botón con "Iniciar ruta"
+                break;
+            case R.id.addAcimutal:
+                newTechnique = new TecnicaAcimutal();
+                alertdialog.dismiss();
+                newTechnique.showTechniqueSettingsMenu(this);
+                if (newTechnique.createdSuccesfully()) {
+                    recordingRoute.addTechnique(newTechnique);
+                }
+                newTechnique = null;
                 break;
         }
     }
@@ -89,13 +118,7 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback, V
 
             }
         });
-        addAcimutal.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                alertdialog.dismiss();
-                //TODO: Añade una tecnica acimutal a la ruta de grabacion y muestra el menú con los parámetros generales.
-            }
-        });
+        addAcimutal.setOnClickListener(this);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle(R.string.addItemtoMapTitle);
