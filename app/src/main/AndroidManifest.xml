@@ -79,6 +79,8 @@
 
         <activity
             android:name=".CrearRuta"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation"
             android:label="@string/title_activity_crear_ruta">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

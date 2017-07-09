@@ -3,7 +3,10 @@ package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
 
 import android.location.Location;
 
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import static java.lang.Math.atan;
 import static java.lang.Math.cos;
@@ -23,7 +26,7 @@ public class Camara extends Objetivo {
     private double yaw; //Entre 0 y 360
     private double roll; //Entre -45 y 45
     private double distanciaFocal; //Distancia al objetivo en metros
-    private VelocidadNESO velocidad = new VelocidadNESO(0,0,0);
+    private VelocidadNESO velocidad;
 
 
     public Camara(){
@@ -42,6 +45,14 @@ public class Camara extends Objetivo {
         this.pitch = 0;
         this.yaw = 0;
         this.roll = 0;
+        this.setCurrentTechnique(o.getCurrentTechnique());
+        this.setAccion(o.getAccion());
+        velocidad = new VelocidadNESO(0,0,0);
+
+        MarkerOptions markerOptions = getMarkerOptions();
+        markerOptions.zIndex(1);
+        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+        setMarkerOptions(markerOptions);
     }
 
     private void initPitchYawRoll(double ptch, double yw, double rll){
@@ -130,8 +141,8 @@ public class Camara extends Objetivo {
         } else {
             float[] resultado = new float[2];
             Location.distanceBetween(this.getLatitude(),this.getLongitude(),o.getLatitude(),o.getLongitude(),resultado);
-            velocidad.setVelocidadNESO(resultado[1]);
-            velocidad.setDireccion(resultado[2]);
+            velocidad.setVelocidadNESO(resultado[0]);
+            velocidad.setDireccion(resultado[1]);
             velocidad.setVertical((o.getHeight()-this.getHeight()/(o.getTime()-this.getTime())));
         }
     }

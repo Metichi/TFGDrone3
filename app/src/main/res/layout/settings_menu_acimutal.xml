@@ -10,6 +10,7 @@
         android:id="@+id/alturaSobreObjetivoLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:text="@string/alturaSobreObjetivoLabel"
         tools:text="@string/alturaSobreObjetivoLabel" />
 
     <EditText
@@ -29,7 +30,7 @@
         android:id="@+id/toggleSigueRuta"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:checked="true"
+        android:checked="false"
         android:textOff="@string/sigueRutaFalse"
         android:textOn="@string/sigueRutaTrue" />
 
@@ -37,6 +38,7 @@
         android:id="@+id/orientacionNESOLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:text="@string/orientacionNESOLabel"
         tools:text="@string/orientacionNESOLabel" />
 
     <EditText

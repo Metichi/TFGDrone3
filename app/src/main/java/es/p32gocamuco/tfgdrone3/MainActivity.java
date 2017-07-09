@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(!DJISDKManager.getInstance().hasSDKRegistered()) {
             DJISDKManager.getInstance().registerApp(this, mSDKManagerCallback);
         }
-        sdkVersion = (TextView) findViewById(R.id.sdkVersion);
+
 
         initUI();
     }

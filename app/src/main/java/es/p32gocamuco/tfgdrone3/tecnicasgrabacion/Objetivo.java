@@ -1,8 +1,14 @@
 package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
 
+import android.app.Activity;
+import android.support.annotation.Nullable;
+
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.SphericalUtil;
 
 /*
@@ -15,16 +21,17 @@ public class Objetivo {
     private Marker marker;
     private MarkerOptions markerOptions; //Almacena la posición del objetivo.
     private TecnicaGrabacion currentTechnique;
-
+    private Acciones accion;
     public enum Acciones{
         INICIA_GRABACION,
         CONTINUA_GRABACION,
         DETENER_GRABACION,
+        DETENER_GRABACION_Y_TOMAR_FOTO,
         TOMAR_FOTO,
         NADA,
         GRABAR_ESTE_PUNTO
     }
-    private Acciones accion = Acciones.NADA;
+
 
 
     public Objetivo(){
@@ -33,6 +40,103 @@ public class Objetivo {
         time =0;
         markerOptions = new MarkerOptions();
         markerOptions.position(position);
+        accion = Acciones.NADA;
+        currentTechnique = new TecnicaGrabacion() {
+            @Override
+            public void calcularRuta() {
+
+            }
+
+            @Override
+            public void addObjetivo(Objetivo o) {
+
+            }
+
+            @Override
+            public void modificarObjetivo(Objetivo nuevo, @Nullable Objetivo original) {
+
+            }
+
+            @Override
+            public void borrarObjetivo(@Nullable Objetivo o) {
+
+            }
+
+            @Override
+            public Objetivo[] verObjetivos() {
+                return new Objetivo[0];
+            }
+
+            @Override
+            public Camara[] verRuta() {
+                return new Camara[0];
+            }
+
+            @Override
+            public void borrarRuta() {
+
+            }
+
+            @Override
+            public void setAccionEnObjetivo(Objetivo o, Acciones a) {
+
+            }
+
+            @Override
+            public int getNumberObjectives() {
+                return 0;
+            }
+
+            @Override
+            public int getNumberCameras() {
+                return 0;
+            }
+
+            @Override
+            public int getIndexOf(Objetivo o) {
+                return 0;
+            }
+
+            @Override
+            public Objetivo getPreviousObjective(Objetivo o) {
+                return null;
+            }
+
+            @Override
+            public void comienzaGrabando(boolean grabando) {
+
+            }
+
+            @Override
+            public boolean finalizaGrabando() {
+                return false;
+            }
+
+            @Override
+            public boolean getCurrentlyRecording(Objetivo o) {
+                return false;
+            }
+
+            @Override
+            public void showTechniqueSettingsMenu(Activity activity) {
+
+            }
+
+            @Override
+            public void setPolyline(Polyline polyline) {
+
+            }
+
+            @Override
+            public Polyline getPolyline() {
+                return null;
+            }
+
+            @Override
+            public PolylineOptions getPolylineOptions() {
+                return null;
+            }
+        };
     }
 
     public Objetivo(LatLng latlng, double height,double t){
@@ -40,6 +144,8 @@ public class Objetivo {
         this.time = t;
         this.markerOptions = new MarkerOptions();
         this.markerOptions.position(latlng);
+        this.markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
+        accion = Acciones.NADA;
     }
 
     public double getLatitude(){
@@ -88,9 +194,18 @@ public class Objetivo {
         return marker;
     }
 
+    public MarkerOptions getMarkerOptions() {
+        return markerOptions;
+    }
+
     public void setMarker(Marker marker) {
+        if (this.marker != null) {this.marker.remove();} //Si estamos cambiando el marcador de este objetivo, debemos borrar el anterior del mapa.
         this.marker = marker;
-        marker.setTag(this);
+        this.marker.setTag(this);
+    }
+
+    public void setMarkerOptions(MarkerOptions markerOptions) {
+        this.markerOptions = markerOptions;
     }
 
     public void desplazar(double distancia, double direccion){

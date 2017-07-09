@@ -2,6 +2,10 @@ package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
 
 import android.app.Activity;
 import android.support.annotation.Nullable;
+
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
+
 import static es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Objetivo.Acciones;
 
 /**
@@ -26,7 +30,11 @@ public interface TecnicaGrabacion {
 
     void comienzaGrabando(boolean grabando);
     boolean finalizaGrabando();
-    boolean createdSuccesfully();
+    boolean getCurrentlyRecording(Objetivo o);
 
     void showTechniqueSettingsMenu(Activity activity);
+
+    void setPolyline(Polyline polyline);
+    Polyline getPolyline();
+    PolylineOptions getPolylineOptions();
 }

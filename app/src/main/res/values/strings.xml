@@ -94,6 +94,26 @@
     <string name="addHome">Localización Home</string>
     <string name="addAcimutal">Tecnica Acimutal</string>
     <string name="addItemtoMapTitle">Añadir objeto al mapa</string>
+    <string name="finalizar">Finalizar</string>
+    <string name="initRuta">Iniciar ruta</string>
+    <string name="objectiveHeightLabel">Altura de objetivo en metros (Rel. Altura Despegue)</string>
+    <string name="tiempoPrevio">Tiempo previo: </string>
+    <string name="tiempoTardado">Tiempo desde el punto anterior al actual</string>
+    <string name="accion">Acción</string>
+    <string name="addObjetivo">Añadir Objetivo</string>
+    <string name="aceptar">Aceptar</string>
+    <string name="cancelar">Cancelar</string>
+    <string-array name="accionesNoGrabando">
+        <item>Nada</item>
+        <item>Inicia Grabacion</item>
+        <item>Grabar durante este punto</item>
+        <item>Tomar foto</item>
+    </string-array>
+    <string-array name="accionesGrabando">
+        <item>Continuar Grabando</item>
+        <item>Detener Grabacion</item>
+        <item>Detener Grabacion y tomar foto</item>
+    </string-array>
 
     <!-- Tecnica Acimutal-->
     <string name="sigueRutaTrue">Orientacion según ruta</string>

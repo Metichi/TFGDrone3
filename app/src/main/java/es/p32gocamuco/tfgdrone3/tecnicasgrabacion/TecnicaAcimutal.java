@@ -1,26 +1,16 @@
 package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.DialogInterface;
+import android.graphics.Color;
 import android.location.Location;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AlertDialog;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.CompoundButton;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.ToggleButton;
+
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
 import java.util.ListIterator;
 
-import es.p32gocamuco.tfgdrone3.CrearRuta;
-import es.p32gocamuco.tfgdrone3.R;
-
-import static android.view.View.GONE;
 import static es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Objetivo.Acciones;
 
 /*
@@ -34,8 +24,16 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
     private double orientacionNESO; //0 si el marco superior de la imagen coincide con el norte
     private boolean orientacionSegunObjetivo; //La cámara se ajusta para que el límite superior apunte al siguiente objetivo. No se tiene en cuenta si sólo hay un punto.
     private boolean comienzaGrabando = false;
-    private boolean created = false;
+    private Polyline polyline;
+    private PolylineOptions polylineOptions;
 
+    public double getAlturaSobreObjetivo() {
+        return alturaSobreObjetivo;
+    }
+
+    public double getOrientacionNESO() {
+        return orientacionNESO;
+    }
 
     public TecnicaAcimutal(){
         alturaSobreObjetivo = 10;
@@ -43,6 +41,9 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
         orientacionNESO = 0;
         objectives = new ArrayList<>(0);
         cameras = new ArrayList<>(0);
+        polylineOptions = new PolylineOptions();
+        polylineOptions.color(Color.CYAN);
+        polylineOptions.width(5);
     }
 
     @Override
@@ -50,6 +51,7 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
         Objetivo puntoAnterior;
         puntoActual.setCurrentTechnique(this);
         objectives.add(puntoActual);
+        polylineOptions.add(puntoActual.getLatLng());
 
         //Al añadir un punto, nos aseguramos de que la acción que sigue sea continuar la grabación si se estaba grabando.
         //También nos aseguramos de que sea coherente en el tiempo.
@@ -62,11 +64,14 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
             } else {
                 if (puntoAnterior.getAccion() == Acciones.INICIA_GRABACION ||
                         puntoAnterior.getAccion() == Acciones.CONTINUA_GRABACION) {
-                    puntoActual.setAccion(Acciones.CONTINUA_GRABACION);
+                    if(!((puntoActual.getAccion()== Acciones.DETENER_GRABACION)||(puntoActual.getAccion()==Acciones.DETENER_GRABACION_Y_TOMAR_FOTO))) {
+                        puntoActual.setAccion(Acciones.CONTINUA_GRABACION);
+                    }
                 }
             }
         } else{
-            if(comienzaGrabando){
+            //Si comienza grabando, y la acción del punto actual no es detener la grabación, continua grabando.
+            if(comienzaGrabando && !((puntoActual.getAccion()== Acciones.DETENER_GRABACION)||(puntoActual.getAccion()==Acciones.DETENER_GRABACION_Y_TOMAR_FOTO))){
                 puntoActual.setAccion(Acciones.CONTINUA_GRABACION);
             }
         }
@@ -75,6 +80,7 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
 
     @Override
     public void calcularRuta() {
+        if (cameras.size()>0){this.borrarRuta();}
         ListIterator<Objetivo> objectiveIterator = objectives.listIterator();
         ListIterator<Camara> cameraIterator; //No se define el iterador todavía porque aún no se ha calculado la posición de las cámaras.
         Camara currentCamera;
@@ -96,12 +102,12 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
             if(!orientacionSegunObjetivo || (objectives.size()==1)){
                 currentCamera.setYaw(orientacionNESO);
             } else {
-                if(objectives.indexOf(currentObjective)== objectives.size()){
-                    currentCamera.setYaw(cameras.get(cameras.size()).getYaw());
+                if(!objectiveIterator.hasNext()){
+                    currentCamera.setYaw(cameras.get(cameras.size()-1).getYaw());
                 } else {
                     nextObjective = objectives.get(objectiveIterator.nextIndex());
                     Location.distanceBetween(currentObjective.getLatitude(),currentObjective.getLongitude(),nextObjective.getLatitude(),nextObjective.getLongitude(),results);
-                    currentCamera.setYaw(results[2]);
+                    currentCamera.setYaw(results[1]);
                 }
             }
             //
@@ -109,7 +115,8 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
             cameras.add(currentCamera);
         }
 
-        cameraIterator = cameras.listIterator(2);
+        //Iniciamos el iterador en la posición 1 en lugar de 0 para asegurarnos de que siempre hay un previous.
+        cameraIterator = cameras.listIterator(1);
         while (cameraIterator.hasNext()){
             currentCamera = cameras.get(cameraIterator.previousIndex());
             nextCamera = cameraIterator.next();
@@ -120,7 +127,7 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
 
     @Override
     public void setAccionEnObjetivo(Objetivo o, Acciones a) {
-        boolean grabacionEnCurso = checkIfGrabacionEnCurso(o);
+        boolean grabacionEnCurso = getCurrentlyRecording(o);
         ListIterator<Objetivo> iterador = objectives.listIterator(objectives.indexOf(o));
         Objetivo sigObj;
 
@@ -172,8 +179,10 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
 
         }
     }
-    private boolean checkIfGrabacionEnCurso(Objetivo o){
-        return o.getAccion() == Acciones.CONTINUA_GRABACION || o.getAccion() == Acciones.INICIA_GRABACION;
+
+    @Override
+    public boolean getCurrentlyRecording(Objetivo o){
+        return (o.getAccion() == Acciones.CONTINUA_GRABACION) || (o.getAccion() == Acciones.INICIA_GRABACION);
     }
 
     @Override
@@ -183,12 +192,24 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
 
     @Override
     public Objetivo[] verObjetivos() {
-        return (Objetivo[]) objectives.toArray();
+        Object[] objects = objectives.toArray();
+        Objetivo[] objetivos = new Objetivo[objects.length];
+        for(int i = 0; i <= objects.length-1;i++){
+            objetivos[i] = (Objetivo) objects[i];
+        }
+        return objetivos;
     }
 
     @Override
     public Camara[] verRuta() {
-        return (Camara[]) cameras.toArray();
+        Object[] objects = this.cameras.toArray();
+        Camara[] cameras = new Camara[objects.length];
+        int i = 0;
+        for (Object o : objects){
+            cameras[i] = (Camara) o;
+            i++;
+        }
+        return cameras;
     }
 
     @Override
@@ -213,12 +234,18 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
 
     @Override
     public boolean finalizaGrabando() {
-        Objetivo ultimoPunto = objectives.get(objectives.size());
-        return ((ultimoPunto.getAccion() == Acciones.CONTINUA_GRABACION) || (ultimoPunto.getAccion() == Acciones.INICIA_GRABACION));
+        int size = objectives.size();
+        if (size == 0){
+            return false;
+        } else {
+            Objetivo ultimoPunto = objectives.get(objectives.size() - 1);
+            return ((ultimoPunto.getAccion() == Acciones.CONTINUA_GRABACION) || (ultimoPunto.getAccion() == Acciones.INICIA_GRABACION));
+        }
     }
 
     @Override
     public void showTechniqueSettingsMenu(final Activity activity) { //TODO: Null point exception en los views
+        /*
         LinearLayout menu = (LinearLayout) activity.findViewById(R.id.settingsAcimutal);
         final EditText altura = (EditText) activity.findViewById(R.id.alturaSobreObjetivo);
         final EditText NESO = (EditText) activity.findViewById(R.id.orientacionNESO);
@@ -251,13 +278,11 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 dialogInterface.cancel();
-                created = false;
             }
         });
         builder.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        created = true;
                         if (altura.getText().toString().trim().length()==0){
                             setAlturaSobreObjetivo(10);
                         } else {
@@ -273,6 +298,7 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
 
                 alertDialog = builder.create();
         alertDialog.show();
+        */
     }
 
     @Override
@@ -317,7 +343,19 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
     }
 
     @Override
-    public boolean createdSuccesfully() {
-        return created;
+    public Polyline getPolyline() {
+        return polyline;
+    }
+
+    @Override
+    public PolylineOptions getPolylineOptions() {
+        return polylineOptions;
+    }
+
+    @Override
+    public void setPolyline(Polyline polyline) {
+        if (this.polyline != null) {this.polyline.remove();} //Borrar la polyline anterior cuando se actalice el valor.
+        this.polyline = polyline;
+        this.polyline.setTag(this);
     }
 }

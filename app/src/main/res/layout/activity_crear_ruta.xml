@@ -36,21 +36,42 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/saveCR" />
+            android:text="@string/saveCR"
+            tools:ignore="ButtonStyle" />
 
         <Button
             android:id="@+id/calcRutaCR"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/calcularCR" />
+            android:text="@string/calcularCR"
+            tools:ignore="ButtonStyle" />
+
+        <Button
+            android:id="@+id/initRuta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/initRuta"
+            android:visibility="gone"
+            tools:ignore="ButtonStyle" />
 
         <Button
             android:id="@+id/addCR"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/addCR" />
+            android:text="@string/addCR"
+            tools:ignore="ButtonStyle" />
+
+        <Button
+            android:id="@+id/finalizar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/finalizar"
+            android:visibility="gone"
+            tools:ignore="ButtonStyle" />
     </LinearLayout>
 
 

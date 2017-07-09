@@ -1,37 +1,156 @@
 package es.p32gocamuco.tfgdrone3;
 
 import android.content.DialogInterface;
-import android.content.IntentSender;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 
+import org.w3c.dom.Text;
+
+import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Camara;
 import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Objetivo;
 import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.RecordingRoute;
 import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.TecnicaAcimutal;
-import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.TecnicaGrabacion;
 
-public class CrearRuta extends FragmentActivity implements OnMapReadyCallback, View.OnClickListener {
+public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
     AlertDialog alertdialog;
     RecordingRoute recordingRoute = new RecordingRoute(); //TODO: Esta iniciación sólo es valida si se viene del menú principal. Si se viene de cargar ruta, hay que iniciar con la ruta correspondiente.
-    Objetivo home;
-    TecnicaAcimutal newTechnique;
 
-    @Override
+    GoogleMap.OnMapClickListener addPoint = new GoogleMap.OnMapClickListener() {
+        @Override
+        public void onMapClick(final LatLng latLng) {
+            LinearLayout menu = (LinearLayout) getLayoutInflater().inflate(R.layout.add_objective_menu, null);
+            TextView latitude = (TextView) menu.findViewById(R.id.latitude);
+            TextView longitude = (TextView) menu.findViewById(R.id.longitude);
+            final EditText height = (EditText) menu.findViewById(R.id.objectiveHeight);
+            TextView previousTime = (TextView) menu.findViewById(R.id.tiempoPrevio);
+            final EditText elapsedTime = (EditText) menu.findViewById(R.id.tiempoTardado);
+            final Spinner action = (Spinner) menu.findViewById(R.id.accion);
+            ArrayAdapter<CharSequence> adapter;
+
+            //Elegimos qué lista de acciones vamos a mostrar.
+            final int id = recordingRoute.isCurrentlyRecording() ? R.array.accionesGrabando : R.array.accionesNoGrabando;
+            adapter = ArrayAdapter.createFromResource(CrearRuta.this,id, R.layout.support_simple_spinner_dropdown_item);
+            adapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
+            action.setAdapter(adapter);
+
+            //Iniciamos la interfaz:
+            latitude.setText(String.format("%s",latLng.latitude));
+            longitude.setText(String.format("%s",latLng.longitude));
+            height.setText("0");
+            previousTime.setText(String.format("%s", recordingRoute.getLastObjective().getTime()));
+            elapsedTime.setText("30"); //TODO: Get this from settings
+            final Objetivo nObjetive = new Objetivo(latLng,0,0);
+
+            action.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                    Objetivo.Acciones a = Objetivo.Acciones.NADA;
+
+                    if (id == R.array.accionesNoGrabando) {
+                        switch (i) {
+                            case 0:
+                                a = Objetivo.Acciones.NADA;
+                                break;
+                            case 1:
+                                a = Objetivo.Acciones.INICIA_GRABACION;
+                                break;
+                            case 2:
+                                a = Objetivo.Acciones.GRABAR_ESTE_PUNTO;
+                                break;
+                            case 3:
+                                a = Objetivo.Acciones.TOMAR_FOTO;
+                                break;
+                            default:
+                                a = Objetivo.Acciones.NADA;
+                        }
+                    } else {
+                        switch (i) {
+                            case 0:
+                                a = Objetivo.Acciones.CONTINUA_GRABACION;
+                                break;
+                            case 1:
+                                a = Objetivo.Acciones.DETENER_GRABACION;
+                                break;
+                            case 2:
+                                a = Objetivo.Acciones.DETENER_GRABACION_Y_TOMAR_FOTO;
+                                break;
+                            default:
+                                a = Objetivo.Acciones.DETENER_GRABACION;
+                        }
+                    }
+                    nObjetive.setAccion(a);
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+                    if(id == R.array.accionesGrabando) {nObjetive.setAccion(Objetivo.Acciones.CONTINUA_GRABACION);}
+                    if(id == R.array.accionesNoGrabando) {nObjetive.setAccion(Objetivo.Acciones.NADA);}
+                }
+            });
+
+            new AlertDialog.Builder(CrearRuta.this)
+                    .setView(menu)
+                    .setTitle(R.string.addObjetivo)
+                    .setPositiveButton(R.string.aceptar, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            double h = Double.parseDouble(height.getText().toString().trim().replace(",","."));
+                            double t = recordingRoute.getLastObjective().getTime() +
+                                    Double.parseDouble(elapsedTime.getText().toString().trim().replace(",","."));
+
+                            nObjetive.setHeight(h);
+                            nObjetive.setTime(t);
+                            Marker marker = mMap.addMarker(nObjetive.getMarkerOptions());
+                            nObjetive.setMarker(marker);
+                            nObjetive.setCurrentTechnique(recordingRoute.getCurrentTechnique());
+
+                            recordingRoute.getCurrentTechnique().addObjetivo(nObjetive);
+                            Polyline polyline = mMap.addPolyline(recordingRoute.getCurrentTechnique().getPolylineOptions());
+                            recordingRoute.getCurrentTechnique().setPolyline(polyline);
+
+                            dialogInterface.dismiss();
+                        }
+                    })
+                    .setNegativeButton(R.string.cancelar, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            dialogInterface.dismiss();
+                        }
+                    })
+                    .create()
+                    .show();
+        }
+    };
+
+    GoogleMap.OnMapClickListener mapInactive = new GoogleMap.OnMapClickListener() {
+        @Override
+        public void onMapClick(LatLng latLng) {
+        }
+    };
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_crear_ruta);
@@ -44,15 +163,84 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback, V
     }
 
     private void initUI() {
-        setTitle(recordingRoute.getName());
-        Button addBtn, calcBtn, saveBtn;
+        final Button addBtn, calcBtn, saveBtn, finishBtn, initBtn;
         addBtn = (Button) findViewById(R.id.addCR);
         calcBtn = (Button) findViewById(R.id.calcRutaCR);
         saveBtn= (Button) findViewById(R.id.saveCR);
+        finishBtn = (Button) findViewById(R.id.finalizar);
+        initBtn = (Button) findViewById(R.id.initRuta);
 
-        addBtn.setOnClickListener(this);
-        calcBtn.setOnClickListener(this);
-        saveBtn.setOnClickListener(this);
+        setTitle(recordingRoute.getName());
+        addBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                displayAddMenu();
+            }
+        });
+
+        finishBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                recordingRoute.setCurrentTechnique(null);
+                updateUI();
+            }
+        });
+        calcBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                recordingRoute.calculateRoute();
+                if(recordingRoute.getRouteReady()){
+                    Camara[] route = recordingRoute.getRoute();
+                    for(Camara waypoint : route){
+                        Marker marker = mMap.addMarker(waypoint.getMarkerOptions());
+                        waypoint.setMarker(marker);
+                        Polyline polyline = mMap.addPolyline(recordingRoute.getPolylineOptions());
+                        recordingRoute.setPolyline(polyline);
+                    }
+                }
+                updateUI();
+            }
+        });
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                recordingRoute.saveRoute();
+            }
+        });
+    }
+    private void updateUI(){
+        final Button addBtn, calcBtn, saveBtn, finishBtn,initBtn;
+        addBtn = (Button) findViewById(R.id.addCR);
+        calcBtn = (Button) findViewById(R.id.calcRutaCR);
+        saveBtn= (Button) findViewById(R.id.saveCR);
+        finishBtn = (Button) findViewById(R.id.finalizar);
+        initBtn = (Button) findViewById(R.id.initRuta);
+
+
+        setTitle(recordingRoute.getName());
+
+
+        if (recordingRoute.getCurrentTechnique() != null) {
+            finishBtn.setVisibility(View.VISIBLE);
+            addBtn.setVisibility(View.GONE);
+            saveBtn.setVisibility(View.GONE);
+            mMap.setOnMapClickListener(addPoint);
+        } else {
+            finishBtn.setVisibility(View.GONE);
+            addBtn.setVisibility(View.VISIBLE);
+            saveBtn.setVisibility(View.VISIBLE);
+            mMap.setOnMapClickListener(mapInactive);
+        }
+
+        //Gestión de los botones de calcular e iniciar ruta.
+        if (recordingRoute.calcRouteAviable()) {
+            calcBtn.setVisibility(recordingRoute.getRouteReady() ? View.GONE : View.VISIBLE);
+            initBtn.setVisibility(!recordingRoute.getRouteReady() ? View.GONE : View.VISIBLE);
+
+        } else {
+            calcBtn.setVisibility(View.GONE);
+            initBtn.setVisibility(View.GONE);
+        }
     }
 
     /**
@@ -68,10 +256,6 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback, V
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
         try {
             mMap.setMyLocationEnabled(true);
         } catch (SecurityException e){
@@ -80,30 +264,6 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback, V
         }
     }
 
-    @Override
-    // TODO: Implementar funcionalidad para los botones.
-    public void onClick(View view) {
-        switch (view.getId()){
-            case R.id.addCR:
-                displayAddMenu();
-                break;
-            case R.id.saveCR:
-                recordingRoute.saveRoute();
-                break;
-            case R.id.calcRutaCR:
-                recordingRoute.calculateRoute(); //TODO: Cuando la ruta está calculada, reemplazar botón con "Iniciar ruta"
-                break;
-            case R.id.addAcimutal:
-                newTechnique = new TecnicaAcimutal();
-                alertdialog.dismiss();
-                newTechnique.showTechniqueSettingsMenu(this);
-                if (newTechnique.createdSuccesfully()) {
-                    recordingRoute.addTechnique(newTechnique);
-                }
-                newTechnique = null;
-                break;
-        }
-    }
 
     public void displayAddMenu(){
         ScrollView addMenu = (ScrollView)getLayoutInflater().inflate(R.layout.add_menu, null);
@@ -118,7 +278,69 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback, V
 
             }
         });
-        addAcimutal.setOnClickListener(this);
+        addAcimutal.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final TecnicaAcimutal newTechnique = new TecnicaAcimutal();
+                LinearLayout menu = (LinearLayout) getLayoutInflater().inflate(R.layout.settings_menu_acimutal, null);
+                final EditText altura = (EditText) menu.findViewById(R.id.alturaSobreObjetivo);
+                final EditText NESO = (EditText) menu.findViewById(R.id.orientacionNESO);
+                final ToggleButton toggleSigueRuta = (ToggleButton) menu.findViewById(R.id.toggleSigueRuta);
+                final TextView orientacionLabel = (TextView) menu.findViewById(R.id.orientacionNESOLabel);
+                AlertDialog acimutalDialog;
+                AlertDialog.Builder acimutalDialogBuilder = new AlertDialog.Builder(CrearRuta.this);
+
+                altura.setText(String.format("%s",newTechnique.getAlturaSobreObjetivo()));
+                NESO.setText(String.format("%s",newTechnique.getOrientacionNESO()));
+
+                toggleSigueRuta.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                        compoundButton.setChecked(b);
+                        if (b){
+                            newTechnique.setOrientacionSegunObjetivo(true);
+                            NESO.setVisibility(View.GONE);
+                            orientacionLabel.setVisibility(View.GONE);
+                        } else {
+                            newTechnique.setOrientacionSegunObjetivo(false);
+                            orientacionLabel.setVisibility(View.VISIBLE);
+                            NESO.setVisibility(View.VISIBLE);
+                        }
+                    }
+                });
+
+
+                acimutalDialogBuilder.setTitle(R.string.addAcimutal);
+                acimutalDialogBuilder.setView(menu);
+                acimutalDialogBuilder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.cancel();
+                    }
+                });
+                acimutalDialogBuilder.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        if (altura.getText().toString().trim().length()==0){
+                            newTechnique.setAlturaSobreObjetivo(10);
+                        } else {
+                            newTechnique.setAlturaSobreObjetivo(Double.parseDouble(altura.getText().toString().replace(",",".")));
+                        }
+                        if (NESO.getText().toString().trim().length() == 0){
+                            newTechnique.setOrientacionNESO(0);
+                        } else {
+                            newTechnique.setOrientacionNESO(Double.parseDouble(NESO.getText().toString().replace(",",".")));
+                        }
+                        recordingRoute.addTechnique(newTechnique);
+                        CrearRuta.this.updateUI();
+                    }
+                });
+
+                acimutalDialog = acimutalDialogBuilder.create();
+                alertdialog.dismiss();
+                acimutalDialog.show();
+            }
+        });
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle(R.string.addItemtoMapTitle);
