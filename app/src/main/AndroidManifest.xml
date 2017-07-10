@@ -79,9 +79,9 @@
 
         <activity
             android:name=".CrearRuta"
-            android:screenOrientation="landscape"
             android:configChanges="orientation"
-            android:label="@string/title_activity_crear_ruta">
+            android:label="@string/title_activity_crear_ruta"
+            android:screenOrientation="landscape">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="es.p32gocamuco.tfgdrone3.MainActivity" />
@@ -103,7 +103,8 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="es.p32gocamuco.tfgdrone3.MainActivity" />
         </activity>
-        <activity android:name=".DroneConnect"></activity>
+        <activity android:name=".DroneConnect" />
+        <activity android:name=".tecnicasgrabacion.IniciarVuelo"></activity>
     </application>
 
 </manifest>
