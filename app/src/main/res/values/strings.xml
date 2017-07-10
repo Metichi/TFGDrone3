@@ -126,4 +126,13 @@
     <string name="orientacionNESOLabel">0º Norte, 90º este, 180º sur, 270º oeste</string>
     <string name="orientacionLabel">Orientación</string>
     <string name="orientacionHint">Entre 0 y 360</string>
+    <string name="pitch">Pitch</string>
+    <string name="yaw">Yaw</string>
+    <string name="roll">Roll</string>
+    <string name="horizontalSpeed">Velocidad horizontal</string>
+    <string name="verticalSpeed">Velocidad vertical</string>
+    <string name="speedBearing">Direccion velocidad</string>
+    <string name="totalSpeed">Velocidad total</string>
+    <string name="cameraBearing">Orientacion Camara</string>
+    <string name="speed">Velocidad</string>
 </resources>

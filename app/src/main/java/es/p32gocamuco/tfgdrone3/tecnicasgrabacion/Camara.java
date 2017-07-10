@@ -11,6 +11,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import static java.lang.Math.atan;
 import static java.lang.Math.cos;
 import static java.lang.Math.floor;
+import static java.lang.Math.max;
 import static java.lang.Math.pow;
 import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
@@ -80,9 +81,9 @@ public class Camara extends Objetivo {
 
     public void enfocaOjbetivo(Objetivo o){
         float[] resultado = new float[2];
-        double incrementoAltura = this.getHeight()-o.getHeight();
+        double incrementoAltura = max( this.getHeight()-o.getHeight(), 0); //El drone no puede apuntar hacia arriba, pero si se le pasa un argumento que le obligara hacer eso, irá lo más cerca posible.
 
-        if (incrementoAltura>=0) {
+
 
             Location.distanceBetween(this.getLatitude(), this.getLongitude(), o.getLatitude(), o.getLongitude(), resultado);
             //El primer elemento del vector resultado es la distancia más corta sobre la superficie de la tierra en metros
@@ -104,10 +105,6 @@ public class Camara extends Objetivo {
             }
 
             setMarkerOptions(getMarkerOptions().rotation((float) this.yaw));
-
-        } else{
-            throw new IllegalArgumentException("ALtura del objetivo es mayor que la de la camara") ;
-        }
     }
 
     public void setPitch(double pitch) {
@@ -147,7 +144,7 @@ public class Camara extends Objetivo {
             Location.distanceBetween(this.getLatitude(),this.getLongitude(),o.getLatitude(),o.getLongitude(),resultado);
             velocidad.setVelocidadNESO(resultado[0]);
             velocidad.setDireccion(resultado[1]);
-            velocidad.setVertical((o.getHeight()-this.getHeight()/(o.getTime()-this.getTime())));
+            velocidad.setVertical(((o.getHeight()-this.getHeight())/(o.getTime()-this.getTime())));
         }
     }
 
@@ -167,5 +164,13 @@ public class Camara extends Objetivo {
 
             return velocidadPrevia/velocidad.getModulo_v();
         }
+    }
+
+    public VelocidadNESO getVelocidad() {
+        return velocidad;
+    }
+
+    public void setVelocidad(VelocidadNESO velocidad) {
+        this.velocidad = velocidad;
     }
 }

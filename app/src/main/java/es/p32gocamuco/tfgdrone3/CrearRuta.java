@@ -303,6 +303,25 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
                 accion.setText(o.getAccion().toString().replace("_"," "));
 
                 if(o instanceof Camara){
+                    Camara c = (Camara) o;
+                    LinearLayout cameraInfo = (LinearLayout) getLayoutInflater().inflate(R.layout.info_camera_marker,null);
+                    TextView pitch, yaw, hSpeed, vSpeed, speedBearing, tSpeed;
+                    pitch = (TextView) cameraInfo.findViewById(R.id.pitch);
+                    yaw = (TextView) cameraInfo.findViewById(R.id.yaw);
+                    hSpeed = (TextView) cameraInfo.findViewById(R.id.hSpeed);
+                    vSpeed = (TextView) cameraInfo.findViewById(R.id.vSpeed);
+                    speedBearing = (TextView) cameraInfo.findViewById(R.id.speedBearing);
+                    tSpeed = (TextView) cameraInfo.findViewById(R.id.tSpeed);
+
+                    pitch.setText(String.format("%s",c.getPitch()));
+                    yaw.setText(String.format("%s",c.getYaw()));
+                    hSpeed.setText(String.format("%s",c.getVelocidad().getVelocidadNESO()));
+                    vSpeed.setText(String.format("%s",c.getVelocidad().getVertical()));
+                    speedBearing.setText(String.format("%s",c.getVelocidad().getDireccion()));
+                    tSpeed.setText(String.format("%s",c.getVelocidad().getModulo_v()));
+
+                    infoWindow.addView(cameraInfo);
+
                     markerIndex.setText(String.format("Camara #%d",recordingRoute.getIndexFromMarker(marker)));
                 } else {
                     markerIndex.setText(String.format("Objetivo #%d",recordingRoute.getIndexFromMarker(marker)));
