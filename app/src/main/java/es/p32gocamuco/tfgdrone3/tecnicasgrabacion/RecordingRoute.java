@@ -4,14 +4,18 @@ package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
  * Created by Manuel Gómez Castro on 4/07/17.
  */
 
+import android.graphics.Color;
 import android.support.annotation.Nullable;
 
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
 import java.util.ListIterator;
+
+import es.p32gocamuco.tfgdrone3.R;
 
 public class RecordingRoute {
     private ArrayList<TecnicaGrabacion> techniques = new ArrayList<>(0);
@@ -133,6 +137,22 @@ public class RecordingRoute {
             return objetivo.getCurrentTechnique();
         }
     }
+    public int getIndexFromMarker(Marker marker){
+        Objetivo o = getObjetivoFromMarker(marker);
+        TecnicaGrabacion t = getTechniqueFromMarker(marker);
+        int index = t.getIndexOf(o);
+        ListIterator<TecnicaGrabacion> iterator = techniques.listIterator(techniques.indexOf(t));
+        if (o instanceof Camara){
+            while (iterator.hasPrevious()){
+                index += iterator.previous().getNumberCameras();
+            }
+        } else if (o != null){
+            while (iterator.hasPrevious()){
+                index += iterator.previous().getNumberObjectives();
+            }
+        }
+        return index;
+    }
 
     public void calculateRoute(){
         ListIterator<TecnicaGrabacion> iterator = techniques.listIterator();
@@ -144,14 +164,21 @@ public class RecordingRoute {
         if (route.length > 0){
             if(polyline != null) {polyline.remove();}
             routeReady = true;
-            polylineOptions = new PolylineOptions();
-            polylineOptions.zIndex(1);
+            initPolylineOptions();
             for (Camara waypoint : route){
                 polylineOptions.add(waypoint.getLatLng());
             }
         } else {
             routeReady = false;
         }
+    }
+    private void initPolylineOptions(){
+        polylineOptions = new PolylineOptions();
+        polylineOptions.zIndex(1);
+        polylineOptions.color(Color.RED);
+        polylineOptions.width(8);
+        polylineOptions.color(R.color.recordingRouteLine);
+
     }
     public boolean calcRouteAviable(){
         //Sólo se puede calcular la ruta si no se está editando ninguna técnica.

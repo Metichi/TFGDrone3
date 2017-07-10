@@ -1,6 +1,7 @@
 package es.p32gocamuco.tfgdrone3;
 
 import android.content.DialogInterface;
+import android.support.annotation.StringDef;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -68,7 +69,7 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
             action.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                    Objetivo.Acciones a = Objetivo.Acciones.NADA;
+                    Objetivo.Acciones a;
 
                     if (id == R.array.accionesNoGrabando) {
                         switch (i) {
@@ -151,6 +152,25 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
         public void onMapClick(LatLng latLng) {
         }
     };
+
+    GoogleMap.OnMarkerClickListener markerClickListener = new GoogleMap.OnMarkerClickListener() {
+        @Override
+        public boolean onMarkerClick(Marker marker) {
+            marker.showInfoWindow();
+            /*marker.setSnippet(marker.getTag().toString());
+            int index = recordingRoute.getIndexFromMarker(marker);
+            if (marker.getTag() instanceof Camara){marker.setTitle(String.format("Camara #%d",index));}
+            else if (marker.getTag() instanceof Objetivo) {marker.setTitle(String.format("Objetivo #%d",index));}*/
+            return false;
+        }
+    };
+    GoogleMap.OnMarkerClickListener markerInactive = new GoogleMap.OnMarkerClickListener() {
+        @Override
+        public boolean onMarkerClick(Marker marker) {
+            return true;
+        }
+    };
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_crear_ruta);
@@ -225,11 +245,13 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
             addBtn.setVisibility(View.GONE);
             saveBtn.setVisibility(View.GONE);
             mMap.setOnMapClickListener(addPoint);
+            mMap.setOnMarkerClickListener(markerInactive);
         } else {
             finishBtn.setVisibility(View.GONE);
             addBtn.setVisibility(View.VISIBLE);
             saveBtn.setVisibility(View.VISIBLE);
             mMap.setOnMapClickListener(mapInactive);
+            mMap.setOnMarkerClickListener(markerClickListener);
         }
 
         //Gestión de los botones de calcular e iniciar ruta.
@@ -255,6 +277,40 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mMap.getUiSettings().setMapToolbarEnabled(false);
+        mMap.getUiSettings().setZoomControlsEnabled(true);
+        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+            @Override
+            public View getInfoWindow(Marker marker) {
+                return null;
+            }
+
+            @Override
+            public View getInfoContents(Marker marker) {
+                LinearLayout infoWindow =(LinearLayout) getLayoutInflater().inflate(R.layout.info_window_marker,null);
+                Objetivo o = (Objetivo) marker.getTag();
+                TextView latitud = (TextView) infoWindow.findViewById(R.id.latitud);
+                TextView longitud = (TextView) infoWindow.findViewById(R.id.longitud);
+                TextView altura = (TextView) infoWindow.findViewById(R.id.altura);
+                TextView tiempo = (TextView) infoWindow.findViewById(R.id.tiempo);
+                TextView accion = (TextView) infoWindow.findViewById(R.id.accion);
+                TextView markerIndex = (TextView) infoWindow.findViewById(R.id.markerIndex);
+
+                latitud.setText(String.format("%f",o.getLatitude()));
+                longitud.setText(String.format("%f",o.getLongitude()));
+                altura.setText(String.format("%s",o.getHeight()));
+                tiempo.setText(String.format("%s",o.getTime()));
+                accion.setText(o.getAccion().toString().replace("_"," "));
+
+                if(o instanceof Camara){
+                    markerIndex.setText(String.format("Camara #%d",recordingRoute.getIndexFromMarker(marker)));
+                } else {
+                    markerIndex.setText(String.format("Objetivo #%d",recordingRoute.getIndexFromMarker(marker)));
+                }
+
+                return infoWindow;
+            }
+        });
 
         try {
             mMap.setMyLocationEnabled(true);

@@ -1,6 +1,7 @@
 package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
 
 import android.app.Activity;
+import android.content.res.Resources;
 import android.support.annotation.Nullable;
 
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -223,5 +224,16 @@ public class Objetivo {
 
     public TecnicaGrabacion getCurrentTechnique() {
         return currentTechnique;
+    }
+
+    @Override
+    public String toString(){
+        String string;
+        String posicion = String.format("Latitud: %f \n Longitud: %f \n",getLatitude(),getLongitude());
+        String altura = String.format("Altura: %s \n",getHeight());
+        String tiempo = String.format("Tiempo establecido: %s \n", getTime());
+        String accion = String.format("Accion: %s \n", getAccion().toString());
+        string = posicion + altura + tiempo +accion;
+        return string;
     }
 }

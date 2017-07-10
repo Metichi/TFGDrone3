@@ -114,7 +114,11 @@
         <item>Detener Grabacion</item>
         <item>Detener Grabacion y tomar foto</item>
     </string-array>
-
+    <string name="latitudLabel">Latitud: </string>
+    <string name="longitudLabel">Longitud: </string>
+    <string name="tiempoLabel">Tiempo: </string>
+    <string name="accionLabel">Accion: </string>
+    <string name="alturaLabel">Altura: </string>
     <!-- Tecnica Acimutal-->
     <string name="sigueRutaTrue">Orientacion según ruta</string>
     <string name="sigueRutaFalse">Orientación personalizada</string>

@@ -52,6 +52,7 @@ public class Camara extends Objetivo {
         MarkerOptions markerOptions = getMarkerOptions();
         markerOptions.zIndex(1);
         markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+        markerOptions.flat(true);
         setMarkerOptions(markerOptions);
     }
 
@@ -102,6 +103,8 @@ public class Camara extends Objetivo {
                 pitch = -90;
             }
 
+            setMarkerOptions(getMarkerOptions().rotation((float) this.yaw));
+
         } else{
             throw new IllegalArgumentException("ALtura del objetivo es mayor que la de la camara") ;
         }
@@ -113,6 +116,7 @@ public class Camara extends Objetivo {
 
     public void setYaw(double yaw) {
         this.yaw = yaw;
+        setMarkerOptions(getMarkerOptions().rotation((float) this.yaw));
     }
 
     public void setRoll(double roll) {
