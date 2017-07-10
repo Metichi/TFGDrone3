@@ -13,13 +13,13 @@ import dji.sdk.base.BaseComponent;
 import dji.sdk.base.BaseProduct;
 import dji.sdk.sdkmanager.DJISDKManager;
 
-/**
+/*
  * Created by Manuel Gómez Castro on 10/07/17.
  */
 
 public class DJIApplication extends Application {
     private static final String activityName = MainActivity.class.getName();
-    private static final String FLAG_CONNECTION_CHANGE = "dji_sdk_connection_change";
+    public static final String FLAG_CONNECTION_CHANGE = "dji_sdk_connection_change";
     private static BaseProduct mProduct;
     private Handler mHandler;
     @Override
@@ -87,7 +87,6 @@ public class DJIApplication extends Application {
         @Override
         public void onConnectivityChange(boolean isConnected) {
             notifyStatusChange();
-            updateUI();
         }
     };
 
@@ -103,4 +102,12 @@ public class DJIApplication extends Application {
             sendBroadcast(intent);
         }
     };
+
+    public static synchronized BaseProduct getProductInstance(){
+        if (mProduct == null){
+            mProduct = DJISDKManager.getInstance().getProduct();
+        }
+        return mProduct;
+    }
+
 }
