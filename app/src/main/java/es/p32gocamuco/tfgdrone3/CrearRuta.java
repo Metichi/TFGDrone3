@@ -1,6 +1,7 @@
 package es.p32gocamuco.tfgdrone3;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.support.annotation.StringDef;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -29,6 +30,7 @@ import com.google.android.gms.maps.model.Polyline;
 
 import org.w3c.dom.Text;
 
+import dji.sdk.base.BaseProduct;
 import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Camara;
 import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Objetivo;
 import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.RecordingRoute;
@@ -225,6 +227,19 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
             @Override
             public void onClick(View view) {
                 recordingRoute.saveRoute();
+            }
+        });
+
+        initBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                BaseProduct product = DJIApplication.getProductInstance();
+                if((product == null) || !product.isConnected()){
+                    Toast.makeText(CrearRuta.this,getString(R.string.noConectado),Toast.LENGTH_SHORT).show();
+                } else {
+                    Intent intent = new Intent(CrearRuta.this, IniciarVuelo.class);
+                    startActivity(intent);
+                }
             }
         });
     }
