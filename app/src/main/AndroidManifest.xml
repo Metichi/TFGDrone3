@@ -104,7 +104,13 @@
                 android:value="es.p32gocamuco.tfgdrone3.MainActivity" />
         </activity>
         <activity android:name=".DroneConnect" />
-        <activity android:name=".tecnicasgrabacion.IniciarVuelo"></activity>
+        <activity android:name=".IniciarVuelo"
+            android:parentActivityName=".CrearRuta"
+            android:screenOrientation="landscape">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="es.p32gocamuco.tfgdrone3.CrearRuta"/>
+        </activity>
     </application>
 
 </manifest>

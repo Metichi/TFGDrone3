@@ -1,10 +1,10 @@
 [
     {
-        "merged": "/home/metichi/TFGDrone3/D:\\androidapps\\TFGDrone3\\dJISDKLIB\\build\\intermediates\\res\\merged\\androidTest\\debug\\xml\\accessory_filter.xml",
-        "source": "/home/metichi/TFGDrone3/D:\\androidapps\\TFGDrone3\\dJISDKLIB\\build\\intermediates\\bundles\\debug\\res\\xml\\accessory_filter.xml"
-    },
-    {
         "merged": "/home/metichi/TFGDrone3/dJISDKLIB/build/intermediates/res/merged/androidTest/debug/xml/accessory_filter.xml",
         "source": "/home/metichi/TFGDrone3/dJISDKLIB/build/intermediates/bundles/debug/res/xml/accessory_filter.xml"
+    },
+    {
+        "merged": "/home/metichi/TFGDrone3/D:\\androidapps\\TFGDrone3\\dJISDKLIB\\build\\intermediates\\res\\merged\\androidTest\\debug\\xml\\accessory_filter.xml",
+        "source": "/home/metichi/TFGDrone3/D:\\androidapps\\TFGDrone3\\dJISDKLIB\\build\\intermediates\\bundles\\debug\\res\\xml\\accessory_filter.xml"
     }
 ]

@@ -135,4 +135,13 @@
     <string name="totalSpeed">Velocidad total</string>
     <string name="cameraBearing">Orientacion Camara</string>
     <string name="speed">Velocidad</string>
+
+    <!-- Iniciar Vuelo-->
+    <string name="status">Estado</string>
+    <string name="showFPV">Mostrar FPV</string>
+    <string name="showMap">Mostrar mapa</string>
+    <string name="startRoute">Iniciar ruta</string>
+    <string name="pauseRoute">Pausar ruta</string>
+    <string name="controlCamera">Camara manual</string>
+    <string name="automatedCamera">Camara automática</string>
 </resources>
