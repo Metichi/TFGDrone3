@@ -1,6 +1,7 @@
 package es.p32gocamuco.tfgdrone3;
 
 import android.app.Application;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
@@ -22,6 +23,7 @@ public class DJIApplication extends Application {
     public static final String FLAG_CONNECTION_CHANGE = "dji_sdk_connection_change";
     private static BaseProduct mProduct;
     private Handler mHandler;
+    private static Context context;
     @Override
     public void onCreate() {
         super.onCreate();
@@ -29,8 +31,12 @@ public class DJIApplication extends Application {
             DJISDKManager.getInstance().registerApp(this, mSDKManagerCallback);
             mHandler = new Handler(Looper.getMainLooper());
         }
+        DJIApplication.context = getApplicationContext();
     }
 
+    public static Context getAppContext(){
+        return DJIApplication.context;
+    }
     //Generamos un SDKManagerCallback para implementar los métodos que actúan en el registro y que gestionan la conexión del producto
     private DJISDKManager.SDKManagerCallback mSDKManagerCallback = new DJISDKManager.SDKManagerCallback() {
         @Override

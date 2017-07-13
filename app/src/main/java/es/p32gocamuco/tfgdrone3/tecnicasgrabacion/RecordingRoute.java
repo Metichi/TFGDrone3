@@ -4,6 +4,7 @@ package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
  * Created by Manuel Gómez Castro on 4/07/17.
  */
 
+import android.content.Context;
 import android.graphics.Color;
 import android.support.annotation.Nullable;
 
@@ -11,10 +12,16 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.ListIterator;
 
+import es.p32gocamuco.tfgdrone3.CrearRuta;
+import es.p32gocamuco.tfgdrone3.DJIApplication;
 import es.p32gocamuco.tfgdrone3.R;
 
 public class RecordingRoute implements Serializable {
@@ -52,8 +59,38 @@ public class RecordingRoute implements Serializable {
         techniques.remove(t);
     }
 
-    public void saveRoute(){} //TODO: Implementar esto
-    public void loadRoute(){} //TODO: esto también
+    public boolean saveRoute(){
+        try{
+            FileOutputStream fos = DJIApplication.getAppContext().openFileOutput(name,Context.MODE_PRIVATE);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(this);
+            oos.close();
+            fos.close();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    public RecordingRoute loadRoute(String filename){
+        try {
+            FileInputStream fis = DJIApplication.getAppContext().openFileInput(filename);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            Object readObject = ois.readObject();
+            ois.close();
+            fis.close();
+
+            if(readObject != null && readObject instanceof RecordingRoute){
+                return (RecordingRoute) readObject;
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    //TODO: Probar si la apertura y guardado de archivos funcionan e implementar la clase Cargar Ruta
 
 
     public int getNumberObjectives(){
