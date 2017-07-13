@@ -1,7 +1,6 @@
 package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
 
 import android.app.Activity;
-import android.content.res.Resources;
 import android.support.annotation.Nullable;
 
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -16,7 +15,7 @@ import com.google.maps.android.SphericalUtil;
  * Created by Manuel Gómez Castro on 1/07/17.
  */
 
-public class Objetivo {
+public class Target {
     private double height; //Altura del objeto desde el sistema de referencia (ej: suelo)
     private double time; //Tiempo en el que se utiliza este objeto relativo al inicio de la sesion
     private Marker marker;
@@ -35,7 +34,7 @@ public class Objetivo {
 
 
 
-    public Objetivo(){
+    public Target(){
         LatLng position = new LatLng(0,0);
         this.height = 0d;
         time =0;
@@ -49,28 +48,28 @@ public class Objetivo {
             }
 
             @Override
-            public void addObjetivo(Objetivo o) {
+            public void addObjetivo(Target o) {
 
             }
 
             @Override
-            public void modificarObjetivo(Objetivo nuevo, @Nullable Objetivo original) {
+            public void modificarObjetivo(Target nuevo, @Nullable Target original) {
 
             }
 
             @Override
-            public void borrarObjetivo(@Nullable Objetivo o) {
+            public void borrarObjetivo(@Nullable Target o) {
 
             }
 
             @Override
-            public Objetivo[] verObjetivos() {
-                return new Objetivo[0];
+            public Target[] verObjetivos() {
+                return new Target[0];
             }
 
             @Override
-            public Camara[] verRuta() {
-                return new Camara[0];
+            public RoutePoint[] verRuta() {
+                return new RoutePoint[0];
             }
 
             @Override
@@ -79,7 +78,7 @@ public class Objetivo {
             }
 
             @Override
-            public void setAccionEnObjetivo(Objetivo o, Acciones a) {
+            public void setAccionEnObjetivo(Target o, Acciones a) {
 
             }
 
@@ -94,12 +93,12 @@ public class Objetivo {
             }
 
             @Override
-            public int getIndexOf(Objetivo o) {
+            public int getIndexOf(Target o) {
                 return 0;
             }
 
             @Override
-            public Objetivo getPreviousObjective(Objetivo o) {
+            public Target getPreviousObjective(Target o) {
                 return null;
             }
 
@@ -114,7 +113,7 @@ public class Objetivo {
             }
 
             @Override
-            public boolean getCurrentlyRecording(Objetivo o) {
+            public boolean getCurrentlyRecording(Target o) {
                 return false;
             }
 
@@ -140,7 +139,7 @@ public class Objetivo {
         };
     }
 
-    public Objetivo(LatLng latlng, double height,double t){
+    public Target(LatLng latlng, double height, double t){
         this.height = height;
         this.time = t;
         this.markerOptions = new MarkerOptions();

@@ -5,7 +5,6 @@ import android.location.Location;
 
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import static java.lang.Math.atan;
@@ -22,33 +21,33 @@ import static java.lang.Math.toRadians;
  * Created by Manuel Gómez Castro on 1/07/17.
  */
 
-public class Camara extends Objetivo {
+public class RoutePoint extends Target {
     private double pitch; //Entre 0 y -90
     private double yaw; //Entre 0 y 360
     private double roll; //Entre -45 y 45
     private double distanciaFocal; //Distancia al objetivo en metros
-    private VelocidadNESO velocidad;
+    private VelocidadNESO speed;
 
 
-    public Camara(){
+    public RoutePoint(){
         super();
         this.pitch = 0;
         this.yaw = 0;
         this.roll = 0;
     }
 
-    public Camara(LatLng latlng, double height, double ptch, double yw, double rll,double t){
+    public RoutePoint(LatLng latlng, double height, double ptch, double yw, double rll, double t){
         super(latlng,height,t);
         initPitchYawRoll(ptch,yw,rll);
     }
-    public Camara(Objetivo o){
+    public RoutePoint(Target o){
         super(o.getLatLng(),o.getHeight(),o.getTime());
         this.pitch = 0;
         this.yaw = 0;
         this.roll = 0;
         this.setCurrentTechnique(o.getCurrentTechnique());
         this.setAccion(o.getAccion());
-        velocidad = new VelocidadNESO(0,0,0);
+        speed = new VelocidadNESO(0,0,0);
 
         MarkerOptions markerOptions = getMarkerOptions();
         markerOptions.zIndex(1);
@@ -79,7 +78,7 @@ public class Camara extends Objetivo {
         distanciaFocal= d;
     }
 
-    public void enfocaOjbetivo(Objetivo o){
+    public void enfocaOjbetivo(Target o){
         float[] resultado = new float[2];
         double incrementoAltura = max( this.getHeight()-o.getHeight(), 0); //El drone no puede apuntar hacia arriba, pero si se le pasa un argumento que le obligara hacer eso, irá lo más cerca posible.
 
@@ -88,12 +87,12 @@ public class Camara extends Objetivo {
             Location.distanceBetween(this.getLatitude(), this.getLongitude(), o.getLatitude(), o.getLongitude(), resultado);
             //El primer elemento del vector resultado es la distancia más corta sobre la superficie de la tierra en metros
             //Dado que esto no tiene en cuenta las alturas, aproximamos la distancia como una recta y utilizamos pitagoras.
-            distanciaFocal = sqrt(pow(resultado[1], 2) + pow(incrementoAltura, 2));
+            distanciaFocal = sqrt(pow(resultado[0], 2) + pow(incrementoAltura, 2));
 
             if(this.getLatLng() == o.getLatLng()) {
                 yaw = 0;
             } else{
-                yaw = resultado[2];
+                yaw = resultado[1];
             }
 
             //La cámara va a poder variar entre 0 y -90 grados.
@@ -133,8 +132,8 @@ public class Camara extends Objetivo {
         return roll;
     }
 
-    public void calculaVelocidad(Objetivo o){
-        /* Calculamos la velocidad que haría falta para llegar hasta un objetivo (o camara) desde nuestro tiempo
+    public void calculaVelocidad(Target o){
+        /* Calculamos la speed que haría falta para llegar hasta un objetivo (o camara) desde nuestro tiempo
             hasta el tiempo que pide el objetivo
          */
         if(o.getTime()<= this.getTime()){
@@ -142,35 +141,35 @@ public class Camara extends Objetivo {
         } else {
             float[] resultado = new float[2];
             Location.distanceBetween(this.getLatitude(),this.getLongitude(),o.getLatitude(),o.getLongitude(),resultado);
-            velocidad.setVelocidadNESO(resultado[0]);
-            velocidad.setDireccion(resultado[1]);
-            velocidad.setVertical(((o.getHeight()-this.getHeight())/(o.getTime()-this.getTime())));
+            speed.setVelocidadNESO(resultado[0]/(o.getTime()-this.getTime()));
+            speed.setDireccion(resultado[1]);
+            speed.setVertical(((o.getHeight()-this.getHeight())/(o.getTime()-this.getTime())));
         }
     }
 
     public double fixToMaxSpeed(double maxSpeed){
         /*
-        Este método ajusta la velocidad de la cámara para ajustarse a una velocidad máxima indicada
+        Este método ajusta la speed de la cámara para ajustarse a una speed máxima indicada
         y devuelve el factor de escala correspondiente.
         */
-        if(maxSpeed >= velocidad.getModulo_v()){
+        if(maxSpeed >= speed.getModulo_v()){
             return 0;
         } else {
-            double anguloAscenso = (velocidad.getVelocidadNESO() == 0) ? 90 : toDegrees(velocidad.getVertical()/velocidad.getVelocidadNESO());
-            double velocidadPrevia = velocidad.getModulo_v();
+            double anguloAscenso = (speed.getVelocidadNESO() == 0) ? 90 : toDegrees(atan(speed.getVertical()/ speed.getVelocidadNESO()));
+            double velocidadPrevia = speed.getModulo_v();
 
-            velocidad.setVelocidadNESO(maxSpeed*cos(toRadians(anguloAscenso)));
-            velocidad.setVertical(maxSpeed*sin(toRadians(anguloAscenso)));
+            speed.setVelocidadNESO(maxSpeed*cos(toRadians(anguloAscenso)));
+            speed.setVertical(maxSpeed*sin(toRadians(anguloAscenso)));
 
-            return velocidadPrevia/velocidad.getModulo_v();
+            return velocidadPrevia/ speed.getModulo_v();
         }
     }
 
-    public VelocidadNESO getVelocidad() {
-        return velocidad;
+    public VelocidadNESO getSpeed() {
+        return speed;
     }
 
-    public void setVelocidad(VelocidadNESO velocidad) {
-        this.velocidad = velocidad;
+    public void setSpeed(VelocidadNESO speed) {
+        this.speed = speed;
     }
 }

@@ -7,7 +7,6 @@ package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
 import android.graphics.Color;
 import android.support.annotation.Nullable;
 
-import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -22,7 +21,7 @@ public class RecordingRoute {
     private String name;
     private TecnicaGrabacion currentTechnique;
     private boolean routeReady = false;
-    private Objetivo home;
+    private Target home;
     private PolylineOptions polylineOptions; //Reflejan la ruta de todas las cámaras.
     private Polyline polyline;
 
@@ -68,33 +67,33 @@ public class RecordingRoute {
         }
         return size;
     }
-    private Objetivo[] getAllObjetivos(){
-        Objetivo[] objetivos = new Objetivo[getNumberObjectives()];
+    private Target[] getAllObjetivos(){
+        Target[] targets = new Target[getNumberObjectives()];
         int i = 0;
         ListIterator<TecnicaGrabacion> iterator = techniques.listIterator();
         while (iterator.hasNext()){
 
-            Objetivo[] o = iterator.next().verObjetivos();
-            for(Objetivo objetivo : o){
-                objetivos[i] = objetivo;
+            Target[] o = iterator.next().verObjetivos();
+            for(Target target : o){
+                targets[i] = target;
                 i++;
             }
         }
-        return objetivos;
+        return targets;
 
     }
-    public Objetivo getLastObjective(){
-        Objetivo[] objetivos = getAllObjetivos();
-        int length = objetivos.length;
+    public Target getLastObjective(){
+        Target[] targets = getAllObjetivos();
+        int length = targets.length;
         if (length == 0){
-            //En caso de que no haya objetivos, iniciamos con un objetivo 0 para que la función no devuelva null.
-            return new Objetivo();
+            //En caso de que no haya targets, iniciamos con un objetivo 0 para que la función no devuelva null.
+            return new Target();
         } else {
-            return objetivos[length -1];
+            return targets[length -1];
         }
     }
     public boolean isCurrentlyRecording(){
-        Objetivo lastObjective = getLastObjective();
+        Target lastObjective = getLastObjective();
         return lastObjective.getCurrentTechnique().getCurrentlyRecording(lastObjective);
 
     }
@@ -107,13 +106,13 @@ public class RecordingRoute {
         }
         return size;
     }
-    public Camara[] getRoute(){
+    public RoutePoint[] getRoute(){
         ListIterator<TecnicaGrabacion> iterator = techniques.listIterator();
-        Camara[] cameras;
-        cameras = new Camara[getNumberCameras()];
+        RoutePoint[] cameras;
+        cameras = new RoutePoint[getNumberCameras()];
         int i = 0;
         while (iterator.hasNext()){
-            for(Camara camera : iterator.next().verRuta()){
+            for(RoutePoint camera : iterator.next().verRuta()){
                 cameras[i] = camera;
                 i++;
             }
@@ -121,28 +120,28 @@ public class RecordingRoute {
         return cameras;
 
     }
-    private Objetivo getObjetivoFromMarker(Marker marker){
-        if (marker.getTag() instanceof Objetivo){
-            return (Objetivo) marker.getTag();
+    private Target getObjetivoFromMarker(Marker marker){
+        if (marker.getTag() instanceof Target){
+            return (Target) marker.getTag();
         } else {
             return null;
         }
     }
     private TecnicaGrabacion getTechniqueFromMarker(Marker marker){
-        Objetivo objetivo = getObjetivoFromMarker(marker);
+        Target target = getObjetivoFromMarker(marker);
 
-        if (objetivo == null) {
+        if (target == null) {
             return null;
         } else {
-            return objetivo.getCurrentTechnique();
+            return target.getCurrentTechnique();
         }
     }
     public int getIndexFromMarker(Marker marker){
-        Objetivo o = getObjetivoFromMarker(marker);
+        Target o = getObjetivoFromMarker(marker);
         TecnicaGrabacion t = getTechniqueFromMarker(marker);
         int index = t.getIndexOf(o);
         ListIterator<TecnicaGrabacion> iterator = techniques.listIterator(techniques.indexOf(t));
-        if (o instanceof Camara){
+        if (o instanceof RoutePoint){
             while (iterator.hasPrevious()){
                 index += iterator.previous().getNumberCameras();
             }
@@ -160,12 +159,12 @@ public class RecordingRoute {
             iterator.next().calcularRuta();
         }
 
-        Camara[] route = getRoute();
+        RoutePoint[] route = getRoute();
         if (route.length > 0){
             if(polyline != null) {polyline.remove();}
             routeReady = true;
             initPolylineOptions();
-            for (Camara waypoint : route){
+            for (RoutePoint waypoint : route){
                 polylineOptions.add(waypoint.getLatLng());
             }
         } else {
@@ -206,11 +205,11 @@ public class RecordingRoute {
         return this.routeReady;
     }
 
-    public void setHome(Objetivo home) {
+    public void setHome(Target home) {
         this.home = home;
     }
 
-    public Objetivo getHome() {
+    public Target getHome() {
         return home;
     }
 

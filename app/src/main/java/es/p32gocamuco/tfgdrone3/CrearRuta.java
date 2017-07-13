@@ -2,7 +2,6 @@ package es.p32gocamuco.tfgdrone3;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.support.annotation.StringDef;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -19,20 +18,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 
-import org.w3c.dom.Text;
-
 import dji.sdk.base.BaseProduct;
-import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Camara;
-import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Objetivo;
+import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.RoutePoint;
+import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Target;
 import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.RecordingRoute;
 import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.TecnicaAcimutal;
 
@@ -66,43 +61,43 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
             height.setText("0");
             previousTime.setText(String.format("%s", recordingRoute.getLastObjective().getTime()));
             elapsedTime.setText("30"); //TODO: Get this from settings
-            final Objetivo nObjetive = new Objetivo(latLng,0,0);
+            final Target nObjetive = new Target(latLng,0,0);
 
             action.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                    Objetivo.Acciones a;
+                    Target.Acciones a;
 
                     if (id == R.array.accionesNoGrabando) {
                         switch (i) {
                             case 0:
-                                a = Objetivo.Acciones.NADA;
+                                a = Target.Acciones.NADA;
                                 break;
                             case 1:
-                                a = Objetivo.Acciones.INICIA_GRABACION;
+                                a = Target.Acciones.INICIA_GRABACION;
                                 break;
                             case 2:
-                                a = Objetivo.Acciones.GRABAR_ESTE_PUNTO;
+                                a = Target.Acciones.GRABAR_ESTE_PUNTO;
                                 break;
                             case 3:
-                                a = Objetivo.Acciones.TOMAR_FOTO;
+                                a = Target.Acciones.TOMAR_FOTO;
                                 break;
                             default:
-                                a = Objetivo.Acciones.NADA;
+                                a = Target.Acciones.NADA;
                         }
                     } else {
                         switch (i) {
                             case 0:
-                                a = Objetivo.Acciones.CONTINUA_GRABACION;
+                                a = Target.Acciones.CONTINUA_GRABACION;
                                 break;
                             case 1:
-                                a = Objetivo.Acciones.DETENER_GRABACION;
+                                a = Target.Acciones.DETENER_GRABACION;
                                 break;
                             case 2:
-                                a = Objetivo.Acciones.DETENER_GRABACION_Y_TOMAR_FOTO;
+                                a = Target.Acciones.DETENER_GRABACION_Y_TOMAR_FOTO;
                                 break;
                             default:
-                                a = Objetivo.Acciones.DETENER_GRABACION;
+                                a = Target.Acciones.DETENER_GRABACION;
                         }
                     }
                     nObjetive.setAccion(a);
@@ -110,8 +105,8 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
 
                 @Override
                 public void onNothingSelected(AdapterView<?> adapterView) {
-                    if(id == R.array.accionesGrabando) {nObjetive.setAccion(Objetivo.Acciones.CONTINUA_GRABACION);}
-                    if(id == R.array.accionesNoGrabando) {nObjetive.setAccion(Objetivo.Acciones.NADA);}
+                    if(id == R.array.accionesGrabando) {nObjetive.setAccion(Target.Acciones.CONTINUA_GRABACION);}
+                    if(id == R.array.accionesNoGrabando) {nObjetive.setAccion(Target.Acciones.NADA);}
                 }
             });
 
@@ -161,8 +156,8 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
             marker.showInfoWindow();
             /*marker.setSnippet(marker.getTag().toString());
             int index = recordingRoute.getIndexFromMarker(marker);
-            if (marker.getTag() instanceof Camara){marker.setTitle(String.format("Camara #%d",index));}
-            else if (marker.getTag() instanceof Objetivo) {marker.setTitle(String.format("Objetivo #%d",index));}*/
+            if (marker.getTag() instanceof RoutePoint){marker.setTitle(String.format("RoutePoint #%d",index));}
+            else if (marker.getTag() instanceof Target) {marker.setTitle(String.format("Target #%d",index));}*/
             return false;
         }
     };
@@ -212,8 +207,8 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
             public void onClick(View view) {
                 recordingRoute.calculateRoute();
                 if(recordingRoute.getRouteReady()){
-                    Camara[] route = recordingRoute.getRoute();
-                    for(Camara waypoint : route){
+                    RoutePoint[] route = recordingRoute.getRoute();
+                    for(RoutePoint waypoint : route){
                         Marker marker = mMap.addMarker(waypoint.getMarkerOptions());
                         waypoint.setMarker(marker);
                         Polyline polyline = mMap.addPolyline(recordingRoute.getPolylineOptions());
@@ -303,7 +298,7 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
             @Override
             public View getInfoContents(Marker marker) {
                 LinearLayout infoWindow =(LinearLayout) getLayoutInflater().inflate(R.layout.info_window_marker,null);
-                Objetivo o = (Objetivo) marker.getTag();
+                Target o = (Target) marker.getTag();
                 TextView latitud = (TextView) infoWindow.findViewById(R.id.latitud);
                 TextView longitud = (TextView) infoWindow.findViewById(R.id.longitud);
                 TextView altura = (TextView) infoWindow.findViewById(R.id.altura);
@@ -311,14 +306,14 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
                 TextView accion = (TextView) infoWindow.findViewById(R.id.accion);
                 TextView markerIndex = (TextView) infoWindow.findViewById(R.id.markerIndex);
 
-                latitud.setText(String.format("%f",o.getLatitude()));
-                longitud.setText(String.format("%f",o.getLongitude()));
-                altura.setText(String.format("%s",o.getHeight()));
-                tiempo.setText(String.format("%s",o.getTime()));
+                latitud.setText(String.format("%.4f",o.getLatitude()));
+                longitud.setText(String.format("%.4f",o.getLongitude()));
+                altura.setText(String.format("%.2f",o.getHeight()));
+                tiempo.setText(String.format("%.2f",o.getTime()));
                 accion.setText(o.getAccion().toString().replace("_"," "));
 
-                if(o instanceof Camara){
-                    Camara c = (Camara) o;
+                if(o instanceof RoutePoint){
+                    RoutePoint c = (RoutePoint) o;
                     LinearLayout cameraInfo = (LinearLayout) getLayoutInflater().inflate(R.layout.info_camera_marker,null);
                     TextView pitch, yaw, hSpeed, vSpeed, speedBearing, tSpeed;
                     pitch = (TextView) cameraInfo.findViewById(R.id.pitch);
@@ -328,18 +323,18 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
                     speedBearing = (TextView) cameraInfo.findViewById(R.id.speedBearing);
                     tSpeed = (TextView) cameraInfo.findViewById(R.id.tSpeed);
 
-                    pitch.setText(String.format("%s",c.getPitch()));
-                    yaw.setText(String.format("%s",c.getYaw()));
-                    hSpeed.setText(String.format("%s",c.getVelocidad().getVelocidadNESO()));
-                    vSpeed.setText(String.format("%s",c.getVelocidad().getVertical()));
-                    speedBearing.setText(String.format("%s",c.getVelocidad().getDireccion()));
-                    tSpeed.setText(String.format("%s",c.getVelocidad().getModulo_v()));
+                    pitch.setText(String.format("%.2f",c.getPitch()));
+                    yaw.setText(String.format("%.2f",c.getYaw()));
+                    hSpeed.setText(String.format("%.2f",c.getSpeed().getVelocidadNESO()));
+                    vSpeed.setText(String.format("%.2f",c.getSpeed().getVertical()));
+                    speedBearing.setText(String.format("%.2f",c.getSpeed().getDireccion()));
+                    tSpeed.setText(String.format("%.2f",c.getSpeed().getModulo_v()));
 
                     infoWindow.addView(cameraInfo);
 
-                    markerIndex.setText(String.format("Camara #%d",recordingRoute.getIndexFromMarker(marker)));
+                    markerIndex.setText(String.format("RoutePoint #%d",recordingRoute.getIndexFromMarker(marker)));
                 } else {
-                    markerIndex.setText(String.format("Objetivo #%d",recordingRoute.getIndexFromMarker(marker)));
+                    markerIndex.setText(String.format("Target #%d",recordingRoute.getIndexFromMarker(marker)));
                 }
 
                 return infoWindow;

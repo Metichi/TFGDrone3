@@ -96,7 +96,7 @@
     <string name="addItemtoMapTitle">Añadir objeto al mapa</string>
     <string name="finalizar">Finalizar</string>
     <string name="initRuta">Iniciar ruta</string>
-    <string name="objectiveHeightLabel">Altura de objetivo en metros (Rel. Altura Despegue)</string>
+    <string name="objectiveHeightLabel">Altura de target en metros (Rel. Altura Despegue)</string>
     <string name="tiempoPrevio">Tiempo previo: </string>
     <string name="tiempoTardado">Tiempo desde el punto anterior al actual</string>
     <string name="accion">Acción</string>
@@ -122,7 +122,7 @@
     <!-- Tecnica Acimutal-->
     <string name="sigueRutaTrue">Orientacion según ruta</string>
     <string name="sigueRutaFalse">Orientación personalizada</string>
-    <string name="alturaSobreObjetivoLabel">Altura en metros sobre el objetivo</string>
+    <string name="alturaSobreObjetivoLabel">Altura en metros sobre el target</string>
     <string name="orientacionNESOLabel">0º Norte, 90º este, 180º sur, 270º oeste</string>
     <string name="orientacionLabel">Orientación</string>
     <string name="orientacionHint">Entre 0 y 360</string>
@@ -131,7 +131,7 @@
     <string name="roll">Roll</string>
     <string name="horizontalSpeed">Velocidad horizontal</string>
     <string name="verticalSpeed">Velocidad vertical</string>
-    <string name="speedBearing">Direccion velocidad</string>
+    <string name="speedBearing">Direccion speed</string>
     <string name="totalSpeed">Velocidad total</string>
     <string name="cameraBearing">Orientacion Camara</string>
     <string name="speed">Velocidad</string>

@@ -11,15 +11,15 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import java.util.ArrayList;
 import java.util.ListIterator;
 
-import static es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Objetivo.Acciones;
+import static es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Target.Acciones;
 
 /*
  * Created by Manuel Gómez Castro on 2/07/17.
  */
 
 public class TecnicaAcimutal implements  TecnicaGrabacion{
-    private ArrayList<Objetivo> objectives;
-    private ArrayList<Camara> cameras;
+    private ArrayList<Target> objectives;
+    private ArrayList<RoutePoint> cameras;
     private double alturaSobreObjetivo;
     private double orientacionNESO; //0 si el marco superior de la imagen coincide con el norte
     private boolean orientacionSegunObjetivo; //La cámara se ajusta para que el límite superior apunte al siguiente objetivo. No se tiene en cuenta si sólo hay un punto.
@@ -47,8 +47,8 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
     }
 
     @Override
-    public void addObjetivo(Objetivo puntoActual) {
-        Objetivo puntoAnterior;
+    public void addObjetivo(Target puntoActual) {
+        Target puntoAnterior;
         puntoActual.setCurrentTechnique(this);
         objectives.add(puntoActual);
         polylineOptions.add(puntoActual.getLatLng());
@@ -81,17 +81,17 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
     @Override
     public void calcularRuta() {
         if (cameras.size()>0){this.borrarRuta();}
-        ListIterator<Objetivo> objectiveIterator = objectives.listIterator();
-        ListIterator<Camara> cameraIterator; //No se define el iterador todavía porque aún no se ha calculado la posición de las cámaras.
-        Camara currentCamera;
-        Camara nextCamera;
-        Objetivo currentObjective;
-        Objetivo nextObjective;
+        ListIterator<Target> objectiveIterator = objectives.listIterator();
+        ListIterator<RoutePoint> cameraIterator; //No se define el iterador todavía porque aún no se ha calculado la posición de las cámaras.
+        RoutePoint currentCamera;
+        RoutePoint nextCamera;
+        Target currentObjective;
+        Target nextObjective;
         float[] results = new float[2];
         while(objectiveIterator.hasNext()){
             //Declaracion de variables que se usaran para generar esta ruta
             currentObjective = objectiveIterator.next();
-            currentCamera = new Camara(currentObjective);
+            currentCamera = new RoutePoint(currentObjective);
 
             //Calculo de la posición de la cámara.
             currentCamera.setHeight(currentObjective.getHeight()+alturaSobreObjetivo);
@@ -126,10 +126,10 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
     }
 
     @Override
-    public void setAccionEnObjetivo(Objetivo o, Acciones a) {
+    public void setAccionEnObjetivo(Target o, Acciones a) {
         boolean grabacionEnCurso = getCurrentlyRecording(o);
-        ListIterator<Objetivo> iterador = objectives.listIterator(objectives.indexOf(o));
-        Objetivo sigObj;
+        ListIterator<Target> iterador = objectives.listIterator(objectives.indexOf(o));
+        Target sigObj;
 
 
         switch(a){
@@ -181,39 +181,39 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
     }
 
     @Override
-    public boolean getCurrentlyRecording(Objetivo o){
+    public boolean getCurrentlyRecording(Target o){
         return (o.getAccion() == Acciones.CONTINUA_GRABACION) || (o.getAccion() == Acciones.INICIA_GRABACION);
     }
 
     @Override
-    public void borrarObjetivo(@Nullable Objetivo o) {
+    public void borrarObjetivo(@Nullable Target o) {
         objectives.remove(o);
     }
 
     @Override
-    public Objetivo[] verObjetivos() {
+    public Target[] verObjetivos() {
         Object[] objects = objectives.toArray();
-        Objetivo[] objetivos = new Objetivo[objects.length];
+        Target[] targets = new Target[objects.length];
         for(int i = 0; i <= objects.length-1;i++){
-            objetivos[i] = (Objetivo) objects[i];
+            targets[i] = (Target) objects[i];
         }
-        return objetivos;
+        return targets;
     }
 
     @Override
-    public Camara[] verRuta() {
+    public RoutePoint[] verRuta() {
         Object[] objects = this.cameras.toArray();
-        Camara[] cameras = new Camara[objects.length];
+        RoutePoint[] cameras = new RoutePoint[objects.length];
         int i = 0;
         for (Object o : objects){
-            cameras[i] = (Camara) o;
+            cameras[i] = (RoutePoint) o;
             i++;
         }
         return cameras;
     }
 
     @Override
-    public void modificarObjetivo(Objetivo nuevo, @Nullable Objetivo original) {
+    public void modificarObjetivo(Target nuevo, @Nullable Target original) {
         if (original != null){
             objectives.set(objectives.indexOf(original),nuevo);
         } else {
@@ -238,7 +238,7 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
         if (size == 0){
             return false;
         } else {
-            Objetivo ultimoPunto = objectives.get(objectives.size() - 1);
+            Target ultimoPunto = objectives.get(objectives.size() - 1);
             return ((ultimoPunto.getAccion() == Acciones.CONTINUA_GRABACION) || (ultimoPunto.getAccion() == Acciones.INICIA_GRABACION));
         }
     }
@@ -312,8 +312,8 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
     }
 
     @Override
-    public int getIndexOf(Objetivo o) {
-        if (o instanceof Camara){
+    public int getIndexOf(Target o) {
+        if (o instanceof RoutePoint){
             return cameras.indexOf(o);
         } else {
             return objectives.indexOf(o);
@@ -321,7 +321,7 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
     }
 
     @Override
-    public Objetivo getPreviousObjective(Objetivo o) {
+    public Target getPreviousObjective(Target o) {
         int indexOfO = objectives.indexOf(o);
         if (indexOfO == 0){
             return null;

@@ -6,7 +6,7 @@ import android.support.annotation.Nullable;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
-import static es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Objetivo.Acciones;
+import static es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Target.Acciones;
 
 /**
  * Created by Manuel Gómez Castro on 2/07/17.
@@ -15,22 +15,22 @@ import static es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Objetivo.Acciones;
 
 public interface TecnicaGrabacion {
     void calcularRuta();
-    void addObjetivo(Objetivo o);
-    void modificarObjetivo(Objetivo nuevo, @Nullable Objetivo original);
-    void borrarObjetivo(@Nullable Objetivo o);
+    void addObjetivo(Target o);
+    void modificarObjetivo(Target nuevo, @Nullable Target original);
+    void borrarObjetivo(@Nullable Target o);
 
-    Objetivo[] verObjetivos();
-    Camara[] verRuta();
+    Target[] verObjetivos();
+    RoutePoint[] verRuta();
     void borrarRuta();
-    void setAccionEnObjetivo(Objetivo o, Acciones a);
+    void setAccionEnObjetivo(Target o, Acciones a);
     int getNumberObjectives();
     int getNumberCameras();
-    int getIndexOf(Objetivo o);
-    Objetivo getPreviousObjective(Objetivo o);
+    int getIndexOf(Target o);
+    Target getPreviousObjective(Target o);
 
     void comienzaGrabando(boolean grabando);
     boolean finalizaGrabando();
-    boolean getCurrentlyRecording(Objetivo o);
+    boolean getCurrentlyRecording(Target o);
 
     void showTechniqueSettingsMenu(Activity activity);
 
