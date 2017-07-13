@@ -47,7 +47,7 @@ public class RoutePoint extends Target implements Serializable{
         this.pitch = 0;
         this.yaw = 0;
         this.roll = 0;
-        this.setCurrentTechnique(o.getCurrentTechnique());
+        this.setCurrentTechnique(o.getTechnique());
         this.setAccion(o.getAccion());
         speed = new VelocidadNESO(0,0,0);
 

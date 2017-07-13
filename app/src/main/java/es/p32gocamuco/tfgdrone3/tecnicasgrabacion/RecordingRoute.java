@@ -44,8 +44,6 @@ public class RecordingRoute implements Serializable {
             if (techniques.get(techniques.indexOf(currentTechnique)-1).getNumberObjectives() == 0){
                 techniques.remove(techniques.indexOf(currentTechnique)-1);
             } else {
-                currentTechnique.comienzaGrabando(
-                        techniques.get(techniques.indexOf(currentTechnique) - 1).finalizaGrabando());
                 break;
             }
         }
@@ -68,7 +66,7 @@ public class RecordingRoute implements Serializable {
         }
         return size;
     }
-    private Target[] getAllObjetivos(){
+    private Target[] getAllTargets(){
         Target[] targets = new Target[getNumberObjectives()];
         int i = 0;
         ListIterator<TecnicaGrabacion> iterator = techniques.listIterator();
@@ -83,19 +81,25 @@ public class RecordingRoute implements Serializable {
         return targets;
 
     }
-    public Target getLastObjective(){
-        Target[] targets = getAllObjetivos();
-        int length = targets.length;
-        if (length == 0){
-            //En caso de que no haya targets, iniciamos con un objetivo 0 para que la función no devuelva null.
+    public Target getLastTarget(){
+        int size = getNumberTechniques();
+        if (size == 0){
             return new Target();
         } else {
-            return targets[length -1];
+            TecnicaGrabacion t = techniques.get(size-1);
+            if (t.getNumberObjectives() == 0) {
+                if (size == 1){
+                    return new Target();
+                } else {
+                    t = techniques.get(size - 2);
+                }
+            }
+            return t.getLastTarget();
         }
     }
     public boolean isCurrentlyRecording(){
-        Target lastObjective = getLastObjective();
-        return lastObjective.getCurrentTechnique().getCurrentlyRecording(lastObjective);
+        Target lastTarget = getLastTarget();
+        return lastTarget.getTechnique().getCurrentlyRecording(lastTarget);
 
     }
 
@@ -121,6 +125,9 @@ public class RecordingRoute implements Serializable {
         return cameras;
 
     }
+    public int getNumberTechniques(){
+        return techniques.size();
+    }
     private Target getObjetivoFromMarker(Marker marker){
         if (marker.getTag() instanceof Target){
             return (Target) marker.getTag();
@@ -134,7 +141,7 @@ public class RecordingRoute implements Serializable {
         if (target == null) {
             return null;
         } else {
-            return target.getCurrentTechnique();
+            return target.getTechnique();
         }
     }
     public int getIndexFromMarker(Marker marker){
@@ -157,7 +164,7 @@ public class RecordingRoute implements Serializable {
     public void calculateRoute(){
         ListIterator<TecnicaGrabacion> iterator = techniques.listIterator();
         while (iterator.hasNext()) {
-            iterator.next().calcularRuta();
+            iterator.next().calculateRoute();
         }
 
         RoutePoint[] route = getRoute();

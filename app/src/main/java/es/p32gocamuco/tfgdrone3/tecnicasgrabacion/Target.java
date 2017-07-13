@@ -43,100 +43,24 @@ public class Target implements Serializable {
         markerOptions = new MarkerOptions();
         markerOptions.position(position);
         accion = Acciones.NADA;
-        currentTechnique = new TecnicaGrabacion() {
+        currentTechnique = new TecnicaGrabacion(false) {
             @Override
-            public void calcularRuta() {
+            public void calculateRoute() {
 
             }
 
             @Override
-            public void addObjetivo(Target o) {
+            void showTechniqueSettingsMenu(Activity activity) {
 
             }
 
             @Override
-            public void modificarObjetivo(Target nuevo, @Nullable Target original) {
-
-            }
-
-            @Override
-            public void borrarObjetivo(@Nullable Target o) {
-
-            }
-
-            @Override
-            public Target[] verObjetivos() {
-                return new Target[0];
-            }
-
-            @Override
-            public RoutePoint[] verRuta() {
-                return new RoutePoint[0];
-            }
-
-            @Override
-            public void borrarRuta() {
-
-            }
-
-            @Override
-            public void setAccionEnObjetivo(Target o, Acciones a) {
-
-            }
-
-            @Override
-            public int getNumberObjectives() {
-                return 0;
-            }
-
-            @Override
-            public int getNumberCameras() {
-                return 0;
-            }
-
-            @Override
-            public int getIndexOf(Target o) {
-                return 0;
-            }
-
-            @Override
-            public Target getPreviousObjective(Target o) {
-                return null;
-            }
-
-            @Override
-            public void comienzaGrabando(boolean grabando) {
-
-            }
-
-            @Override
-            public boolean finalizaGrabando() {
+            public boolean getCurrentlyRecording(Target o){
                 return false;
             }
-
             @Override
-            public boolean getCurrentlyRecording(Target o) {
-                return false;
-            }
-
-            @Override
-            public void showTechniqueSettingsMenu(Activity activity) {
-
-            }
-
-            @Override
-            public void setPolyline(Polyline polyline) {
-
-            }
-
-            @Override
-            public Polyline getPolyline() {
-                return null;
-            }
-
-            @Override
-            public PolylineOptions getPolylineOptions() {
-                return null;
+            public Target getPreviousObjective(Target o){
+                return new Target();
             }
         };
     }
@@ -223,7 +147,7 @@ public class Target implements Serializable {
         this.currentTechnique = currentTechnique;
     }
 
-    public TecnicaGrabacion getCurrentTechnique() {
+    public TecnicaGrabacion getTechnique() {
         return currentTechnique;
     }
 

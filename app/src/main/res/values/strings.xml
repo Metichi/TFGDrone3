@@ -100,7 +100,7 @@
     <string name="tiempoPrevio">Tiempo previo: </string>
     <string name="tiempoTardado">Tiempo desde el punto anterior al actual</string>
     <string name="accion">Acción</string>
-    <string name="addObjetivo">Añadir Objetivo</string>
+    <string name="addTarget">Añadir Objetivo</string>
     <string name="aceptar">Aceptar</string>
     <string name="cancelar">Cancelar</string>
     <string-array name="accionesNoGrabando">
