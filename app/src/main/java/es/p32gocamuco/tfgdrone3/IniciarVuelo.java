@@ -4,7 +4,15 @@ import android.graphics.SurfaceTexture;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.TextureView;
+import android.view.View;
+import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.Toast;
+import android.widget.ToggleButton;
+
+import com.google.android.gms.maps.MapView;
+
+import java.util.Map;
 
 import dji.common.product.Model;
 import dji.sdk.base.BaseProduct;
@@ -18,6 +26,7 @@ public class IniciarVuelo extends AppCompatActivity {
     protected VideoFeeder.VideoDataCallback mReceivedVideoDataCallback = null;
     protected DJICodecManager mCodecManager;
 
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_iniciar_vuelo);
@@ -30,17 +39,53 @@ public class IniciarVuelo extends AppCompatActivity {
                 }
             }
         };
+        initUI();
     }
 
     protected void onProductChange(){
         initPreviewer();
     }
 
+    private void initUI(){
+        final TextureView videoView = (TextureView) findViewById(R.id.videoView);
+        final MapView mapView = (MapView) findViewById(R.id.mapView);
+        Button showStatus = (Button) findViewById(R.id.showStatus);
+        ToggleButton controlCameraSwitch = (ToggleButton) findViewById(R.id.controlCameraSwitch);
+        ToggleButton mapSwitch = (ToggleButton) findViewById(R.id.mapSwitch);
+        ToggleButton initRouteSwitch = (ToggleButton) findViewById(R.id.initRouteSwitch);
+
+        showStatus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
+
+        mapSwitch.setChecked(false);
+        mapSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                if (isChecked){
+                    mapView.setVisibility(View.VISIBLE);
+                    videoView.setVisibility(View.INVISIBLE);
+                } else {
+                    mapView.setVisibility(View.INVISIBLE);
+                    videoView.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+    }
     @Override
     protected void onResume() {
         super.onResume();
         initPreviewer();
         onProductChange();
+    }
+
+    @Override
+    protected void onDestroy() {
+        uninitPreviewer();
+        super.onDestroy();
     }
 
     private void initPreviewer(){
