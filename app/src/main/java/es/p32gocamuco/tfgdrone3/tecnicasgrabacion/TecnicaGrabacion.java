@@ -6,6 +6,8 @@ import android.support.annotation.Nullable;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.io.Serializable;
+
 import static es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Target.Acciones;
 
 /**

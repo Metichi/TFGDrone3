@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.ListIterator;
 
@@ -17,7 +18,7 @@ import static es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Target.Acciones;
  * Created by Manuel Gómez Castro on 2/07/17.
  */
 
-public class TecnicaAcimutal implements  TecnicaGrabacion{
+public class TecnicaAcimutal implements  TecnicaGrabacion, Serializable{
     private ArrayList<Target> objectives;
     private ArrayList<RoutePoint> cameras;
     private double alturaSobreObjetivo;
@@ -358,4 +359,5 @@ public class TecnicaAcimutal implements  TecnicaGrabacion{
         this.polyline = polyline;
         this.polyline.setTag(this);
     }
+
 }

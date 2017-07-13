@@ -4,10 +4,12 @@ package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
  * Created by Manuel Gómez Castro on 2/07/17.
  * Esta clase se usa para representar la velocidad de un objeto.
  */
+import java.io.Serializable;
+
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 
-public class VelocidadNESO {
+public class VelocidadNESO implements Serializable{
     private double velocidadNESO; //Velocidad respecto al plano Norte Este Sur Oeste en metros por segundo
     private double direccion; //Ángulo de la velocidad respecto al plano NESO, siendo 0 el norte, 90 el este...
     private double vertical; //Velocidad de ascenso o descenso, positiva para velocidad hacia arriba en metros por segundo

@@ -11,12 +11,13 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.ListIterator;
 
 import es.p32gocamuco.tfgdrone3.R;
 
-public class RecordingRoute {
+public class RecordingRoute implements Serializable {
     private ArrayList<TecnicaGrabacion> techniques = new ArrayList<>(0);
     private String name;
     private TecnicaGrabacion currentTechnique;
@@ -220,4 +221,5 @@ public class RecordingRoute {
     public Polyline getPolyline() {
         return polyline;
     }
+
 }

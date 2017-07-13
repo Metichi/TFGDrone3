@@ -11,11 +11,13 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.SphericalUtil;
 
+import java.io.Serializable;
+
 /*
  * Created by Manuel Gómez Castro on 1/07/17.
  */
 
-public class Target {
+public class Target implements Serializable {
     private double height; //Altura del objeto desde el sistema de referencia (ej: suelo)
     private double time; //Tiempo en el que se utiliza este objeto relativo al inicio de la sesion
     private Marker marker;

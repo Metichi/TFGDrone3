@@ -7,6 +7,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.Serializable;
+
 import static java.lang.Math.atan;
 import static java.lang.Math.cos;
 import static java.lang.Math.floor;
@@ -21,7 +23,7 @@ import static java.lang.Math.toRadians;
  * Created by Manuel Gómez Castro on 1/07/17.
  */
 
-public class RoutePoint extends Target {
+public class RoutePoint extends Target implements Serializable{
     private double pitch; //Entre 0 y -90
     private double yaw; //Entre 0 y 360
     private double roll; //Entre -45 y 45
