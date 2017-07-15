@@ -126,12 +126,10 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
 
                         nTarget.setHeight(h);
                         nTarget.setTime(t);
-                        Marker marker = mMap.addMarker(nTarget.getMarkerOptions());
-                        nTarget.setMarker(marker);
+                        nTarget.placeAtMap(mMap);
 
                         recordingRoute.getCurrentTechnique().addTarget(nTarget);
-                        Polyline polyline = mMap.addPolyline(recordingRoute.getCurrentTechnique().getPolylineOptions());
-                        recordingRoute.getCurrentTechnique().setPolyline(polyline);
+                        recordingRoute.getCurrentTechnique().placeAtMap(mMap);
 
                         dialogInterface.dismiss();
                     }
@@ -173,6 +171,7 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
             recordingRoute = new RecordingRoute();
         } else {
             recordingRoute = (RecordingRoute) intent.getSerializableExtra("RECORDING_ROUTE");
+            recordingRoute.initMapOptions();
         }
     }
 
@@ -207,10 +206,8 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
                 if (recordingRoute.getRouteReady()) {
                     RoutePoint[] route = recordingRoute.getRoute();
                     for (RoutePoint waypoint : route) {
-                        Marker marker = mMap.addMarker(waypoint.getMarkerOptions());
-                        waypoint.setMarker(marker);
-                        Polyline polyline = mMap.addPolyline(recordingRoute.getPolylineOptions());
-                        recordingRoute.setPolyline(polyline);
+                        waypoint.placeAtMap(mMap);
+                        recordingRoute.placeAtMap(mMap);
                     }
                 }
                 updateUI();

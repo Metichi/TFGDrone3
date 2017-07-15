@@ -4,12 +4,12 @@ import android.app.Activity;
 import android.graphics.Color;
 import android.support.annotation.Nullable;
 
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.ListIterator;
 
 import static es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Target.Acciones;
@@ -20,8 +20,8 @@ import static es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Target.Acciones;
  */
 
 public abstract class TecnicaGrabacion implements Serializable {
-    protected PolylineOptions polylineOptions;
-    protected Polyline polyline;
+    protected transient PolylineOptions polylineOptions;
+    protected transient Polyline polyline;
     protected boolean startsWhileRecording;
     protected ArrayList<Target> targets;
     protected ArrayList<RoutePoint> routePoints;
@@ -29,9 +29,7 @@ public abstract class TecnicaGrabacion implements Serializable {
     public TecnicaGrabacion(boolean startsWhileRecording){
         targets = new ArrayList<>(0);
         routePoints = new ArrayList<>(0);
-        polylineOptions = new PolylineOptions();
-        polylineOptions.color(Color.CYAN);
-        polylineOptions.width(5);
+        initMapOptions();
         this.startsWhileRecording = startsWhileRecording;
     }
     abstract public void calculateRoute();
@@ -52,7 +50,6 @@ public abstract class TecnicaGrabacion implements Serializable {
     }
 
     public void deleteTarget(@Nullable Target o) {
-
         targets.remove(o);
     }
 
@@ -65,7 +62,7 @@ public abstract class TecnicaGrabacion implements Serializable {
         return targets;
     }
 
-    public RoutePoint[] verRuta() {
+    public RoutePoint[] getWaypoints() {
         Object[] objects = this.routePoints.toArray();
         RoutePoint[] routePoints = new RoutePoint[objects.length];
         int i = 0;
@@ -76,7 +73,7 @@ public abstract class TecnicaGrabacion implements Serializable {
         return routePoints;
     }
 
-    public void borrarRuta() {
+    public void deleteWaypoints() {
         routePoints.clear();
     }
 
@@ -97,7 +94,7 @@ public abstract class TecnicaGrabacion implements Serializable {
         }
     }
 
-    public Target getPreviousObjective(Target o) {
+    public Target getPreviousTarget(Target o) {
         int indexOfO = targets.indexOf(o);
         if (indexOfO == 0){
             return null;
@@ -106,7 +103,7 @@ public abstract class TecnicaGrabacion implements Serializable {
         }
     }
 
-    public boolean finalizaGrabando(){
+    public boolean endsWhileRecording(){
         return getCurrentlyRecording(getLastTarget());
     }
     public Target getLastTarget(){
@@ -148,9 +145,14 @@ public abstract class TecnicaGrabacion implements Serializable {
     }
 
 
-    public void setPolyline(Polyline polyline) {
+    /*public void setPolyline(Polyline polyline) {
         if (this.polyline != null) {this.polyline.remove();} //Borrar la polyline anterior cuando se actalice el valor.
         this.polyline = polyline;
+        this.polyline.setTag(this);
+    }*/
+    public void placeAtMap(GoogleMap gMap){
+        if (this.polyline != null) {this.polyline.remove();} //Borrar la polyline anterior cuando se actalice el valor.
+        this.polyline = gMap.addPolyline(this.polylineOptions);
         this.polyline.setTag(this);
     }
 
@@ -193,6 +195,20 @@ public abstract class TecnicaGrabacion implements Serializable {
         while (iterator.hasNext()){
             Target t = checkTargetActions(iterator.next());
             if (t != null) {fixTargetActions(t);}
+        }
+    }
+
+    public void initMapOptions(){
+        polylineOptions = new PolylineOptions();
+        polylineOptions.color(Color.CYAN);
+        polylineOptions.width(5);
+
+        for (Target t : getTargets()){
+            t.initMarkerOptions();
+            polylineOptions.add(t.getLatLng());
+        }
+        for (RoutePoint r : getWaypoints()){
+            r.initMarkerOptions();
         }
     }
 }

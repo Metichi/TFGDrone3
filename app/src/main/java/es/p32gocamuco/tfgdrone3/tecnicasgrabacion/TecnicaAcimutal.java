@@ -2,11 +2,8 @@ package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
 
 import android.app.Activity;
 import android.location.Location;
-import android.support.annotation.Nullable;
 
 import java.util.ListIterator;
-
-import static es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Target.Acciones;
 
 /*
  * Created by Manuel Gómez Castro on 2/07/17.
@@ -34,7 +31,7 @@ public class TecnicaAcimutal extends   TecnicaGrabacion{
     }
     @Override
     public void calculateRoute() {
-        if (routePoints.size()>0){this.borrarRuta();}
+        if (routePoints.size()>0){this.deleteWaypoints();}
         ListIterator<Target> objectiveIterator = targets.listIterator();
         ListIterator<RoutePoint> cameraIterator; //No se define el iterador todavía porque aún no se ha calculado la posición de las cámaras.
         RoutePoint currentCamera;

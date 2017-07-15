@@ -45,7 +45,7 @@ public class CargarRuta extends AppCompatActivity implements View.OnClickListene
         LinearLayout cargarRutaMenu = (LinearLayout) findViewById(R.id.cargarRutaMenu);
         cargarRutaMenu.removeAllViewsInLayout();
         try {
-            String list[] = mngr.list(path);
+            String[] list = mngr.list(path);
             if (list.length == 0){
                 TextView noFiles = new TextView(this);
                 noFiles.setText("No hay archivos guardados");
@@ -55,8 +55,8 @@ public class CargarRuta extends AppCompatActivity implements View.OnClickListene
                     String[] parts = file.split(".");
                     if (parts.length == 2){
                         String name = parts[0];
-                        String ext = parts[0];
-                        if (ext == "adp"){
+                        String ext = parts[1];
+                        if (ext.equals("adp")){
                             Button button = new Button(this);
                             button.setText(name);
                             button.setOnClickListener(this);

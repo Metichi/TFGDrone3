@@ -7,12 +7,14 @@ package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
 import android.content.Context;
 import android.graphics.Color;
 import android.support.annotation.Nullable;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
@@ -30,15 +32,16 @@ public class RecordingRoute implements Serializable {
     private TecnicaGrabacion currentTechnique;
     private boolean routeReady = false;
     private Target home;
-    private PolylineOptions polylineOptions; //Reflejan la ruta de todas las cámaras.
-    private Polyline polyline;
+    private transient PolylineOptions polylineOptions; //Reflejan la ruta de todas las cámaras.
+    private transient Polyline polyline;
 
     public RecordingRoute(){
-        name = "Nueva Ruta";
+        name = "NuevaRuta";
     }
 
-    public void setPolyline(Polyline polyline) {
-        this.polyline = polyline;
+    public void placeAtMap(GoogleMap gMap){
+        if(this.polyline!= null){this.polyline.remove();}
+        this.polyline = gMap.addPolyline(this.polylineOptions);
         this.polyline.setTag(this);
     }
 
@@ -61,11 +64,14 @@ public class RecordingRoute implements Serializable {
 
     public boolean saveRoute(){
         try{
-            FileOutputStream fos = DJIApplication.getAppContext().openFileOutput(name + ".adp",Context.MODE_PRIVATE);
+            File path = DJIApplication.getAppContext().getFilesDir();
+            File savedRoute = new File(path,name+".adp");
+            FileOutputStream fos = new FileOutputStream(savedRoute);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(this);
             oos.close();
             fos.close();
+            Toast.makeText(DJIApplication.getAppContext(),"Guardado: " + name + ".adp",Toast.LENGTH_SHORT).show();
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -140,21 +146,21 @@ public class RecordingRoute implements Serializable {
 
     }
 
-    public int getNumberCameras(){
+    public int getNumberWaypoints(){
         ListIterator<TecnicaGrabacion> iterator = techniques.listIterator();
         int size = 0;
         while (iterator.hasNext()){
-            size += iterator.next().verRuta().length;
+            size += iterator.next().getWaypoints().length;
         }
         return size;
     }
     public RoutePoint[] getRoute(){
         ListIterator<TecnicaGrabacion> iterator = techniques.listIterator();
         RoutePoint[] cameras;
-        cameras = new RoutePoint[getNumberCameras()];
+        cameras = new RoutePoint[getNumberWaypoints()];
         int i = 0;
         while (iterator.hasNext()){
-            for(RoutePoint camera : iterator.next().verRuta()){
+            for(RoutePoint camera : iterator.next().getWaypoints()){
                 cameras[i] = camera;
                 i++;
             }
@@ -203,14 +209,9 @@ public class RecordingRoute implements Serializable {
             t.calculateRoute();
         }
 
-        RoutePoint[] route = getRoute();
-        if (route.length > 0){
-            if(polyline != null) {polyline.remove();}
+        if (getNumberWaypoints() > 0){
             routeReady = true;
             initPolylineOptions();
-            for (RoutePoint waypoint : route){
-                polylineOptions.add(waypoint.getLatLng());
-            }
         } else {
             routeReady = false;
         }
@@ -221,6 +222,10 @@ public class RecordingRoute implements Serializable {
         polylineOptions.color(Color.RED);
         polylineOptions.width(8);
         polylineOptions.color(R.color.recordingRouteLine);
+        if(polyline != null) {polyline.remove();}
+        for (RoutePoint waypoint : getRoute()){
+            polylineOptions.add(waypoint.getLatLng());
+        }
 
     }
     public boolean calcRouteAviable(){
@@ -267,19 +272,22 @@ public class RecordingRoute implements Serializable {
 
     public void updateMap(GoogleMap gMap){
         for (TecnicaGrabacion t: techniques) {
-            t.setPolyline(gMap.addPolyline(t.getPolylineOptions()));
+            t.placeAtMap(gMap);
             Target[] targets = t.getTargets();
             for(Target target : targets){
-                target.setMarker(gMap.addMarker(target.getMarkerOptions()));
+                target.placeAtMap(gMap);
             }
         }
         RoutePoint[] route = getRoute();
         for (RoutePoint waypoint : route) {
-            Marker marker = gMap.addMarker(waypoint.getMarkerOptions());
-            waypoint.setMarker(marker);
-            Polyline polyline = gMap.addPolyline(getPolylineOptions());
-            setPolyline(polyline);
+            waypoint.placeAtMap(gMap);
         }
     }
 
+    public void initMapOptions(){
+        initPolylineOptions();
+        for (TecnicaGrabacion t : techniques){
+            t.initMapOptions();
+        }
+    }
 }

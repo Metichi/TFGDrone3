@@ -3,6 +3,7 @@ package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
 import android.app.Activity;
 import android.support.annotation.Nullable;
 
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -18,12 +19,14 @@ import java.io.Serializable;
  */
 
 public class Target implements Serializable {
-    private double height; //Altura del objeto desde el sistema de referencia (ej: suelo)
-    private double time; //Tiempo en el que se utiliza este objeto relativo al inicio de la sesion
-    private Marker marker;
-    private MarkerOptions markerOptions; //Almacena la posición del objetivo.
-    private TecnicaGrabacion currentTechnique;
-    private Acciones accion;
+    protected double latitude;
+    protected double longitude;
+    protected double height; //Altura del objeto desde el sistema de referencia (ej: suelo)
+    protected double time; //Tiempo en el que se utiliza este objeto relativo al inicio de la sesion
+    protected transient Marker marker;
+    protected transient MarkerOptions markerOptions; //Almacena la posición del objetivo.
+    protected TecnicaGrabacion currentTechnique;
+    protected static Acciones accion;
     public enum Acciones{
         INICIA_GRABACION,
         CONTINUA_GRABACION,
@@ -38,6 +41,8 @@ public class Target implements Serializable {
 
     public Target(){
         LatLng position = new LatLng(0,0);
+        latitude = 0;
+        longitude = 0;
         this.height = 0d;
         time =0;
         markerOptions = new MarkerOptions();
@@ -59,29 +64,29 @@ public class Target implements Serializable {
                 return false;
             }
             @Override
-            public Target getPreviousObjective(Target o){
+            public Target getPreviousTarget(Target o){
                 return new Target();
             }
         };
     }
 
     public Target(LatLng latlng, double height, double t){
+        this.latitude = latlng.latitude;
+        this.longitude = latlng.longitude;
         this.height = height;
         this.time = t;
-        this.markerOptions = new MarkerOptions();
-        this.markerOptions.position(latlng);
-        this.markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
+        initMarkerOptions();
         accion = Acciones.NADA;
     }
 
     public double getLatitude(){
-        return this.markerOptions.getPosition().latitude;
+        return this.latitude;
     }
     public double getLongitude(){
-        return this.markerOptions.getPosition().longitude;
+        return this.longitude;
     }
     public LatLng getLatLng(){
-        return this.markerOptions.getPosition();
+        return new LatLng(latitude,longitude);
     }
     public double getHeight(){
         return height;
@@ -93,21 +98,21 @@ public class Target implements Serializable {
     }
 
     public void setPosition(LatLng newPos){
-        this.markerOptions.position(newPos);
+        this.latitude = newPos.latitude;
+        this.longitude = newPos.longitude;
+        markerOptions.position(newPos);
     }
 
-    public void setLatitude(double latitude){
-        double oldLong = this.markerOptions.getPosition().longitude;
-        LatLng position = new LatLng(latitude,oldLong);
-        this.markerOptions.position(position);
+    public void setLatitude(double newLat){
+        this.latitude = newLat;
+        markerOptions.position(new LatLng(this.latitude, this.longitude));
     }
-    public void setLongitude(double longitude){
-        double oldLat = this.markerOptions.getPosition().latitude;
-        LatLng position = new LatLng(oldLat,longitude);
-        this.markerOptions.position(position);
+    public void setLongitude(double newLong){
+        this.longitude = newLong;
+        markerOptions.position(new LatLng(this.latitude, this.longitude));
     }
-    public void setHeight(double height){
-        this.height = height;
+    public void setHeight(double newHeight){
+        this.height = newHeight;
     }
     public void setTime(double t) {
         this.time =t;}
@@ -124,14 +129,16 @@ public class Target implements Serializable {
         return markerOptions;
     }
 
-    public void setMarker(Marker marker) {
+    /*public void setMarker(Marker marker) {
         if (this.marker != null) {this.marker.remove();} //Si estamos cambiando el marcador de este objetivo, debemos borrar el anterior del mapa.
         this.marker = marker;
         this.marker.setTag(this);
-    }
+    }*/
 
-    public void setMarkerOptions(MarkerOptions markerOptions) {
-        this.markerOptions = markerOptions;
+    public void placeAtMap(GoogleMap gMap){
+        if (this.marker != null) {this.marker.remove();} //Si estamos cambiando el marcador de este objetivo, debemos borrar el anterior del mapa.
+        this.marker = gMap.addMarker(this.markerOptions);
+        this.marker.setTag(this);
     }
 
     public void desplazar(double distancia, double direccion){
@@ -151,14 +158,10 @@ public class Target implements Serializable {
         return currentTechnique;
     }
 
-    @Override
-    public String toString(){
-        String string;
-        String posicion = String.format("Latitud: %f \n Longitud: %f \n",getLatitude(),getLongitude());
-        String altura = String.format("Altura: %s \n",getHeight());
-        String tiempo = String.format("Tiempo establecido: %s \n", getTime());
-        String accion = String.format("Accion: %s \n", getAccion().toString());
-        string = posicion + altura + tiempo +accion;
-        return string;
+    public void initMarkerOptions(){
+        this.markerOptions = new MarkerOptions();
+        this.markerOptions.position(new LatLng(this.latitude,this.longitude));
+        this.markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
     }
+
 }

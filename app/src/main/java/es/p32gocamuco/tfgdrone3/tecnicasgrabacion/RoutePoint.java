@@ -51,11 +51,7 @@ public class RoutePoint extends Target implements Serializable{
         this.setAccion(o.getAccion());
         speed = new VelocidadNESO(0,0,0);
 
-        MarkerOptions markerOptions = getMarkerOptions();
-        markerOptions.zIndex(1);
-        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-        markerOptions.flat(true);
-        setMarkerOptions(markerOptions);
+        initMarkerOptions();
     }
 
     private void initPitchYawRoll(double ptch, double yw, double rll){
@@ -105,7 +101,7 @@ public class RoutePoint extends Target implements Serializable{
                 pitch = -90;
             }
 
-            setMarkerOptions(getMarkerOptions().rotation((float) this.yaw));
+            markerOptions.rotation((float) this.yaw);
     }
 
     public void setPitch(double pitch) {
@@ -114,7 +110,7 @@ public class RoutePoint extends Target implements Serializable{
 
     public void setYaw(double yaw) {
         this.yaw = yaw;
-        setMarkerOptions(getMarkerOptions().rotation((float) this.yaw));
+        markerOptions.rotation((float) this.yaw);
     }
 
     public void setRoll(double roll) {
@@ -173,5 +169,13 @@ public class RoutePoint extends Target implements Serializable{
 
     public void setSpeed(VelocidadNESO speed) {
         this.speed = speed;
+    }
+
+    @Override
+    public void initMarkerOptions() {
+        super.initMarkerOptions();
+        markerOptions.zIndex(1);
+        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+        markerOptions.flat(true);
     }
 }
