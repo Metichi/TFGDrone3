@@ -7,6 +7,7 @@ package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
 import android.content.Context;
 import android.graphics.Color;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
@@ -34,6 +35,7 @@ public class RecordingRoute implements Serializable {
     private Target home;
     private transient PolylineOptions polylineOptions; //Reflejan la ruta de todas las cámaras.
     private transient Polyline polyline;
+    private static final long serialVersionUID = 100L;
 
     public RecordingRoute(){
         name = "NuevaRuta";
@@ -223,8 +225,10 @@ public class RecordingRoute implements Serializable {
         polylineOptions.width(8);
         polylineOptions.color(R.color.recordingRouteLine);
         if(polyline != null) {polyline.remove();}
-        for (RoutePoint waypoint : getRoute()){
-            polylineOptions.add(waypoint.getLatLng());
+        if (getNumberWaypoints() > 0) {
+            for (RoutePoint waypoint : getRoute()) {
+                polylineOptions.add(waypoint.getLatLng());
+            }
         }
 
     }
@@ -286,6 +290,7 @@ public class RecordingRoute implements Serializable {
 
     public void initMapOptions(){
         initPolylineOptions();
+        routeReady = false;
         for (TecnicaGrabacion t : techniques){
             t.initMapOptions();
         }

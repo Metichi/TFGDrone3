@@ -32,6 +32,9 @@ public abstract class TecnicaGrabacion implements Serializable {
         initMapOptions();
         this.startsWhileRecording = startsWhileRecording;
     }
+    public TecnicaGrabacion(){
+        super();
+    }
     abstract public void calculateRoute();
 
     public void addTarget(Target puntoActual) {
@@ -63,14 +66,18 @@ public abstract class TecnicaGrabacion implements Serializable {
     }
 
     public RoutePoint[] getWaypoints() {
-        Object[] objects = this.routePoints.toArray();
-        RoutePoint[] routePoints = new RoutePoint[objects.length];
-        int i = 0;
-        for (Object o : objects){
-            routePoints[i] = (RoutePoint) o;
-            i++;
+        if (routePoints == null){
+            return new RoutePoint[0];
+        } else {
+            Object[] objects = this.routePoints.toArray();
+            RoutePoint[] routePoints = new RoutePoint[objects.length];
+            int i = 0;
+            for (Object o : objects) {
+                routePoints[i] = (RoutePoint) o;
+                i++;
+            }
+            return routePoints;
         }
-        return routePoints;
     }
 
     public void deleteWaypoints() {

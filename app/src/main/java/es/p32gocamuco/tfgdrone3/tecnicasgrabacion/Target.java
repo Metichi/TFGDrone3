@@ -26,7 +26,7 @@ public class Target implements Serializable {
     protected transient Marker marker;
     protected transient MarkerOptions markerOptions; //Almacena la posición del objetivo.
     protected TecnicaGrabacion currentTechnique;
-    protected static Acciones accion;
+    protected Acciones accion;
     public enum Acciones{
         INICIA_GRABACION,
         CONTINUA_GRABACION,

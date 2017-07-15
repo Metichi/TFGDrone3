@@ -177,5 +177,6 @@ public class RoutePoint extends Target implements Serializable{
         markerOptions.zIndex(1);
         markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
         markerOptions.flat(true);
+        markerOptions.rotation((float) yaw);
     }
 }
