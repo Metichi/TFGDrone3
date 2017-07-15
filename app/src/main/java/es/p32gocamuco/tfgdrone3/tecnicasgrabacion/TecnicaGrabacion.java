@@ -56,7 +56,7 @@ public abstract class TecnicaGrabacion implements Serializable {
         targets.remove(o);
     }
 
-    public Target[] verObjetivos() {
+    public Target[] getTargets() {
         Object[] objects = targets.toArray();
         Target[] targets = new Target[objects.length];
         for(int i = 0; i <= objects.length-1;i++){

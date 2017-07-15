@@ -8,6 +8,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.support.annotation.Nullable;
 
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -20,7 +21,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.ListIterator;
 
-import es.p32gocamuco.tfgdrone3.CrearRuta;
 import es.p32gocamuco.tfgdrone3.DJIApplication;
 import es.p32gocamuco.tfgdrone3.R;
 
@@ -61,7 +61,7 @@ public class RecordingRoute implements Serializable {
 
     public boolean saveRoute(){
         try{
-            FileOutputStream fos = DJIApplication.getAppContext().openFileOutput(name,Context.MODE_PRIVATE);
+            FileOutputStream fos = DJIApplication.getAppContext().openFileOutput(name + ".adp",Context.MODE_PRIVATE);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(this);
             oos.close();
@@ -72,7 +72,7 @@ public class RecordingRoute implements Serializable {
             return false;
         }
     }
-    public RecordingRoute loadRoute(String filename){
+    public static RecordingRoute loadRoute(String filename){
         try {
             FileInputStream fis = DJIApplication.getAppContext().openFileInput(filename);
             ObjectInputStream ois = new ObjectInputStream(fis);
@@ -99,7 +99,7 @@ public class RecordingRoute implements Serializable {
 
 
         while (iterator.hasNext()){
-            size += iterator.next().verObjetivos().length;
+            size += iterator.next().getTargets().length;
         }
         return size;
     }
@@ -109,7 +109,7 @@ public class RecordingRoute implements Serializable {
         ListIterator<TecnicaGrabacion> iterator = techniques.listIterator();
         while (iterator.hasNext()){
 
-            Target[] o = iterator.next().verObjetivos();
+            Target[] o = iterator.next().getTargets();
             for(Target target : o){
                 targets[i] = target;
                 i++;
@@ -199,9 +199,8 @@ public class RecordingRoute implements Serializable {
     }
 
     public void calculateRoute(){
-        ListIterator<TecnicaGrabacion> iterator = techniques.listIterator();
-        while (iterator.hasNext()) {
-            iterator.next().calculateRoute();
+        for (TecnicaGrabacion t : techniques){
+            t.calculateRoute();
         }
 
         RoutePoint[] route = getRoute();
@@ -264,6 +263,23 @@ public class RecordingRoute implements Serializable {
 
     public Polyline getPolyline() {
         return polyline;
+    }
+
+    public void updateMap(GoogleMap gMap){
+        for (TecnicaGrabacion t: techniques) {
+            t.setPolyline(gMap.addPolyline(t.getPolylineOptions()));
+            Target[] targets = t.getTargets();
+            for(Target target : targets){
+                target.setMarker(gMap.addMarker(target.getMarkerOptions()));
+            }
+        }
+        RoutePoint[] route = getRoute();
+        for (RoutePoint waypoint : route) {
+            Marker marker = gMap.addMarker(waypoint.getMarkerOptions());
+            waypoint.setMarker(marker);
+            Polyline polyline = gMap.addPolyline(getPolylineOptions());
+            setPolyline(polyline);
+        }
     }
 
 }

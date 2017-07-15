@@ -35,7 +35,7 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
     AlertDialog alertdialog;
-    RecordingRoute recordingRoute = new RecordingRoute(); //TODO: Esta iniciación sólo es valida si se viene del menú principal. Si se viene de cargar ruta, hay que iniciar con la ruta correspondiente.
+    RecordingRoute recordingRoute; //TODO: Esta iniciación sólo es valida si se viene del menú principal. Si se viene de cargar ruta, hay que iniciar con la ruta correspondiente.
 
     private void addTargetToMap(LatLng latLng) {
         final Target nTarget = new Target(latLng, 0, 0);
@@ -168,6 +168,12 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        Intent intent = getIntent();
+        if (!intent.hasExtra("RECORDING_ROUTE")){
+            recordingRoute = new RecordingRoute();
+        } else {
+            recordingRoute = (RecordingRoute) intent.getSerializableExtra("RECORDING_ROUTE");
+        }
     }
 
     private void initUI() {
@@ -213,7 +219,7 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
         saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                recordingRoute.saveRoute();
+                showSaveMenu();
             }
         });
 
@@ -314,6 +320,7 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
             Toast toast = Toast.makeText(this, "No hay permisos para obtener localización", Toast.LENGTH_SHORT);
             toast.show();
         }
+        recordingRoute.updateMap(mMap);
         initUI();
     }
 
@@ -459,6 +466,30 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
         }
 
         return infoWindow;
+    }
+    private void showSaveMenu(){
+        LinearLayout saveMenu = (LinearLayout) getLayoutInflater().inflate(R.layout.save_menu, null);
+        final TextView editName = (TextView) saveMenu.findViewById(R.id.editName);
+        editName.setText(recordingRoute.getName());
+        new AlertDialog.Builder(this)
+                .setTitle("Guardar Ruta")
+                .setView(saveMenu)
+                .setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        recordingRoute.setName(editName.getText().toString());
+                        recordingRoute.saveRoute();
+                        dialogInterface.dismiss();
+                    }
+                })
+                .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                })
+                .create()
+                .show();
     }
 
 }
