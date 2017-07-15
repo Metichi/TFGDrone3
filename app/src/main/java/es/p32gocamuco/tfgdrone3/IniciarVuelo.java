@@ -10,7 +10,11 @@ import android.widget.CompoundButton;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.Marker;
 
 import java.util.Map;
 
@@ -20,11 +24,14 @@ import dji.sdk.camera.Camera;
 import dji.sdk.camera.VideoFeeder;
 import dji.sdk.codec.DJICodecManager;
 import es.p32gocamuco.tfgdrone3.R;
+import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.RecordingRoute;
 
-public class IniciarVuelo extends AppCompatActivity {
+public class IniciarVuelo extends AppCompatActivity implements OnMapReadyCallback {
 
     protected VideoFeeder.VideoDataCallback mReceivedVideoDataCallback = null;
     protected DJICodecManager mCodecManager;
+    protected RecordingRoute recordingRoute;
+    GoogleMap mMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +47,12 @@ public class IniciarVuelo extends AppCompatActivity {
             }
         };
         initUI();
+        recordingRoute = (RecordingRoute) getIntent().getSerializableExtra("RECORDING_ROUTE");
+        recordingRoute.initMapOptions();
+        recordingRoute.calculateRoute();
+
+        MapView mapView = (MapView) findViewById(R.id.mapView);
+        mapView.getMapAsync(this);
     }
 
     protected void onProductChange(){
@@ -137,4 +150,18 @@ public class IniciarVuelo extends AppCompatActivity {
         public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
         }
     };
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+        mMap.getUiSettings().setMapToolbarEnabled(false);
+        mMap.getUiSettings().setZoomControlsEnabled(true);
+        try {
+            mMap.setMyLocationEnabled(true);
+        } catch (SecurityException e) {
+            Toast toast = Toast.makeText(this, "No hay permisos para obtener localización", Toast.LENGTH_SHORT);
+            toast.show();
+        }
+        recordingRoute.updateMap(mMap);
+    }
 }

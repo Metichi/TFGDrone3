@@ -228,6 +228,7 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
                     Toast.makeText(CrearRuta.this, getString(R.string.noConectado), Toast.LENGTH_SHORT).show();
                 } else {
                     Intent intent = new Intent(CrearRuta.this, IniciarVuelo.class);
+                    intent.putExtra("RECORDING_ROUTE",recordingRoute);
                     startActivity(intent);
                 }
             }
