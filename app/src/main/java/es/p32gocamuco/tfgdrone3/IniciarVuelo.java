@@ -11,6 +11,7 @@ import android.location.LocationManager;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
@@ -27,15 +28,31 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import dji.common.error.DJIError;
 import dji.common.flightcontroller.FlightControllerState;
+import dji.common.mission.waypoint.Waypoint;
+import dji.common.mission.waypoint.WaypointAction;
+import dji.common.mission.waypoint.WaypointActionType;
+import dji.common.mission.waypoint.WaypointMission;
+import dji.common.mission.waypoint.WaypointMissionFinishedAction;
+import dji.common.mission.waypoint.WaypointMissionFlightPathMode;
+import dji.common.mission.waypoint.WaypointMissionHeadingMode;
+import dji.common.mission.waypoint.WaypointMissionState;
+import dji.common.mission.waypoint.WaypointTurnMode;
 import dji.common.product.Model;
+import dji.common.util.CommonCallbacks;
 import dji.sdk.base.BaseProduct;
 import dji.sdk.camera.Camera;
 import dji.sdk.camera.VideoFeeder;
 import dji.sdk.codec.DJICodecManager;
 import dji.sdk.flightcontroller.FlightController;
+import dji.sdk.mission.waypoint.WaypointMissionOperator;
 import dji.sdk.products.Aircraft;
 import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.RecordingRoute;
+import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.RoutePoint;
 
 public class IniciarVuelo extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -84,7 +101,7 @@ public class IniciarVuelo extends AppCompatActivity implements OnMapReadyCallbac
 
     private void initUI(){
         final TextureView videoView = (TextureView) findViewById(R.id.videoView);
-        final View mapView = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapView)).getView();
+        final View mapView = (getSupportFragmentManager().findFragmentById(R.id.mapView)).getView();
         Button showStatus = (Button) findViewById(R.id.showStatus);
         ToggleButton controlCameraSwitch = (ToggleButton) findViewById(R.id.controlCameraSwitch);
         ToggleButton mapSwitch = (ToggleButton) findViewById(R.id.mapSwitch);
@@ -107,6 +124,18 @@ public class IniciarVuelo extends AppCompatActivity implements OnMapReadyCallbac
                 } else {
                     mapView.setVisibility(View.INVISIBLE);
                     videoView.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+
+        initRouteSwitch.setChecked(false);
+        initRouteSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                if(isChecked){
+                    startFlight();
+                } else {
+                    pauseFlight();
                 }
             }
         });
@@ -234,8 +263,7 @@ public class IniciarVuelo extends AppCompatActivity implements OnMapReadyCallbac
         try {
             mMap.setMyLocationEnabled(true);
         } catch (SecurityException e) {
-            Toast toast = Toast.makeText(this, "No hay permisos para obtener localización", Toast.LENGTH_SHORT);
-            toast.show();
+            setResultToToast("No hay permisos para obtener localización");
         }
         recordingRoute.updateMap(mMap);
         updateDroneLocation();
@@ -262,5 +290,160 @@ public class IniciarVuelo extends AppCompatActivity implements OnMapReadyCallbac
         if (pos != null){
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(pos,13f));
         }
+    }
+
+    private void startFlight(){
+        WaypointMissionOperator waypointMissionOperator = DJIApplication.getWaypointMissionOperator();
+        if (waypointMissionOperator.getCurrentState() != WaypointMissionState.EXECUTION_PAUSED) {
+            WaypointMission waypointMission = buildWaypointMission(buildWaypointList());
+
+            DJIError error = waypointMissionOperator.loadMission(waypointMission);
+            if (error == null) {
+                setResultToToast("Mission loaded successfully");
+                uploadMissionToAircraft();
+            } else {
+                setResultToToast("Error: " + error.getDescription());
+                Log.e("StartFlight", error.getDescription());
+            }
+        } else {
+            waypointMissionOperator.resumeMission(new CommonCallbacks.CompletionCallback() {
+                @Override
+                public void onResult(DJIError djiError) {
+                    if (djiError == null){
+                        setResultToToast("Resumed successfully");
+                    } else {
+                        setResultToToast("Error resuming: " + djiError.getDescription());
+                        Log.e("ResumeMission", djiError.getDescription());
+                    }
+                }
+            });
+        }
+    }
+    private List<Waypoint> buildWaypointList(){
+        RoutePoint[] routePoints = recordingRoute.getRoute();
+        RoutePoint previousRoutePoint = null;
+        ArrayList<Waypoint> waypoints = new ArrayList<>(routePoints.length);
+        for(RoutePoint routePoint : routePoints){
+            Waypoint waypoint = new Waypoint(routePoint.getLatitude(),routePoint.getLongitude(),(float) routePoint.getHeight());
+            waypoint.heading = (int) Math.round(routePoint.getYaw());
+            waypoint.gimbalPitch = (float) routePoint.getPitch();
+
+            if (previousRoutePoint != null) {
+                int previousHeading, currentHeading, relativeHeading;
+                previousHeading = (int) Math.round(previousRoutePoint.getYaw());
+                if (previousHeading > 180){previousHeading = previousHeading - 360;}
+                currentHeading = (int) Math.round(routePoint.getYaw());
+                if (currentHeading > 180){currentHeading = currentHeading - 360;}
+                relativeHeading = currentHeading - previousHeading;
+
+                if (relativeHeading < 180){
+                    waypoint.turnMode = WaypointTurnMode.CLOCKWISE;
+                } else if (relativeHeading > 180) {
+                    waypoint.turnMode = WaypointTurnMode.COUNTER_CLOCKWISE;
+                } else {
+                    waypoint.turnMode = waypoints.get(waypoints.size()-1).turnMode;
+                }
+            }
+            previousRoutePoint = routePoint;
+
+            waypoint.speed = (float) routePoint.getSpeed().getModulo_v();
+
+            WaypointAction waypointAction;
+            switch (routePoint.getAccion()){
+                case INICIA_GRABACION:
+                    waypointAction = new WaypointAction(WaypointActionType.START_RECORD,0);
+                    waypoint.addAction(waypointAction);
+                    break;
+                case DETENER_GRABACION:
+                    waypointAction = new WaypointAction(WaypointActionType.STOP_RECORD,0);
+                    waypoint.addAction(waypointAction);
+                    break;
+                case DETENER_GRABACION_Y_TOMAR_FOTO:
+                    waypointAction = new WaypointAction(WaypointActionType.STOP_RECORD,0);
+                    waypoint.addAction(waypointAction);
+                case TOMAR_FOTO:
+                    waypointAction = new WaypointAction(WaypointActionType.START_TAKE_PHOTO, 0);
+                    waypoint.addAction(waypointAction);
+                    break;
+                default:
+                    break;
+            }
+            waypoints.add(waypoint);
+        }
+        return waypoints;
+    }
+
+    private WaypointMission buildWaypointMission(List<Waypoint> waypointList){
+        //Options for the waypoint mission
+        WaypointMission.Builder waypointMissionBuilder = new WaypointMission.Builder()
+                .finishedAction(WaypointMissionFinishedAction.GO_HOME) //TODO: Get this from settings
+                .headingMode(WaypointMissionHeadingMode.USING_WAYPOINT_HEADING) //TODO: Maybe change this, not sure.
+                .maxFlightSpeed(12f) //TODO: Get this from settings
+                .flightPathMode(WaypointMissionFlightPathMode.NORMAL) //TODO: Get this from settings
+                .setExitMissionOnRCSignalLostEnabled(true) //TODO: Get this from settings
+                .setGimbalPitchRotationEnabled(true)//This has to be true in order for each individual waypoint to be able to set its pitch.
+                .waypointList(waypointList);
+
+        return waypointMissionBuilder.build();
+
+    }
+
+    private void uploadMissionToAircraft(){
+        final WaypointMissionOperator waypointMissionOperator = DJIApplication.getWaypointMissionOperator();
+        waypointMissionOperator.uploadMission(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(DJIError djiError) {
+                if (djiError == null) {
+                    setResultToToast("Upload to aircraft successfull");
+                    startMission();
+                } else {
+                    setResultToToast("Failed to upload: " + djiError.getDescription());
+                    Log.e("UploadToAircraft", djiError.getDescription());
+                    waypointMissionOperator.retryUploadMission(null);
+                }
+            }
+        });
+
+
+    }
+    private void startMission(){
+        DJIApplication.getWaypointMissionOperator().startMission(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(DJIError djiError) {
+                setResultToToast("Mission start :" + (djiError == null ?
+                        "Success" : djiError.getDescription()));
+            }
+        });
+    }
+
+    private void pauseFlight(){
+        DJIApplication.getWaypointMissionOperator().pauseMission(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(DJIError djiError) {
+                if (djiError == null){
+                    setResultToToast("Mission Paused");
+                } else {
+                    setResultToToast("Error: " + djiError.getDescription());
+                    Log.e("PauseFlight", djiError.getDescription());
+                }
+            }
+        });
+    }
+    private void stopFlight(){
+        DJIApplication.getWaypointMissionOperator().stopMission(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(DJIError djiError) {
+                if (djiError == null){
+                    setResultToToast("Mission Stopped");
+                } else {
+                    setResultToToast("Error: " + djiError.getDescription());
+                    Log.e("StopFlight", djiError.getDescription());
+                }
+            }
+        });
+    }
+
+    private void setResultToToast(String result){
+        Toast.makeText(DJIApplication.getAppContext(),result,Toast.LENGTH_SHORT).show();
     }
 }

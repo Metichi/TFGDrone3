@@ -12,6 +12,7 @@ import dji.common.error.DJIError;
 import dji.common.error.DJISDKError;
 import dji.sdk.base.BaseComponent;
 import dji.sdk.base.BaseProduct;
+import dji.sdk.mission.waypoint.WaypointMissionOperator;
 import dji.sdk.sdkmanager.DJISDKManager;
 
 /*
@@ -23,7 +24,7 @@ public class DJIApplication extends Application {
     public static final String FLAG_CONNECTION_CHANGE = "dji_sdk_connection_change";
     private static BaseProduct mProduct;
     private Handler mHandler;
-    private static Context context;
+    private static Context context; //TODO: Android context in static fields causes memory leak.
     @Override
     public void onCreate() {
         super.onCreate();
@@ -116,4 +117,11 @@ public class DJIApplication extends Application {
         return mProduct;
     }
 
+    //MISSION CONTROL
+    static private WaypointMissionOperator waypointMissionOperator;
+
+    public static synchronized WaypointMissionOperator getWaypointMissionOperator() {
+         waypointMissionOperator = DJISDKManager.getInstance().getMissionControl().getWaypointMissionOperator();
+        return waypointMissionOperator;
+    }
 }
