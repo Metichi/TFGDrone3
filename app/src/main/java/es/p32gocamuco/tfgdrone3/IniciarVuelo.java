@@ -1,6 +1,14 @@
 package es.p32gocamuco.tfgdrone3;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.SurfaceTexture;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.TextureView;
@@ -10,20 +18,23 @@ import android.widget.CompoundButton;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.util.Map;
-
+import dji.common.flightcontroller.FlightControllerState;
 import dji.common.product.Model;
 import dji.sdk.base.BaseProduct;
 import dji.sdk.camera.Camera;
 import dji.sdk.camera.VideoFeeder;
 import dji.sdk.codec.DJICodecManager;
-import es.p32gocamuco.tfgdrone3.R;
+import dji.sdk.flightcontroller.FlightController;
+import dji.sdk.products.Aircraft;
 import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.RecordingRoute;
 
 public class IniciarVuelo extends AppCompatActivity implements OnMapReadyCallback {
@@ -51,17 +62,29 @@ public class IniciarVuelo extends AppCompatActivity implements OnMapReadyCallbac
         recordingRoute.initMapOptions();
         recordingRoute.calculateRoute();
 
-        MapView mapView = (MapView) findViewById(R.id.mapView);
-        mapView.getMapAsync(this);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.mapView);
+        mapFragment.getMapAsync(this);
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(DJIApplication.FLAG_CONNECTION_CHANGE);
+        registerReceiver(mReciever,filter);
     }
+    protected BroadcastReceiver mReciever = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            onProductChange();
+        }
+    };
 
     protected void onProductChange(){
         initPreviewer();
+        initFlightController();
     }
 
     private void initUI(){
         final TextureView videoView = (TextureView) findViewById(R.id.videoView);
-        final MapView mapView = (MapView) findViewById(R.id.mapView);
+        final View mapView = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapView)).getView();
         Button showStatus = (Button) findViewById(R.id.showStatus);
         ToggleButton controlCameraSwitch = (ToggleButton) findViewById(R.id.controlCameraSwitch);
         ToggleButton mapSwitch = (ToggleButton) findViewById(R.id.mapSwitch);
@@ -123,6 +146,58 @@ public class IniciarVuelo extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    /*FINDING THE AIRCRAFTS POSITION*/
+    private double droneLocationLat;
+    private double droneLocationLong;
+    private double droneLocationAlt;
+    private double droneLocationYaw;
+    private void initFlightController(){
+        FlightController mFlightController = null;
+        BaseProduct product = DJIApplication.getProductInstance();
+        if(product!= null && product.isConnected()){
+            if(product instanceof Aircraft){
+                mFlightController = ((Aircraft) product).getFlightController();
+            }
+        }
+        if (mFlightController != null){
+            mFlightController.setStateCallback(new FlightControllerState.Callback() {
+                @Override
+                public void onUpdate(@NonNull FlightControllerState flightControllerState) {
+                    droneLocationLat = flightControllerState.getAircraftLocation().getLatitude();
+                    droneLocationLong = flightControllerState.getAircraftLocation().getLongitude();
+                    droneLocationAlt = flightControllerState.getAircraftLocation().getAltitude();
+                    droneLocationYaw = flightControllerState.getAttitude().yaw;
+                    updateDroneLocation();
+                }
+            });
+        }
+    }
+
+    /*PLACING THE AIRCRAFT ON THE MAP*/
+    Marker droneMarker = null;
+    private void updateDroneLocation(){
+        LatLng pos = new LatLng(droneLocationLat,droneLocationLong);
+        final MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(pos);
+        markerOptions.flat(true);
+        markerOptions.rotation((float) droneLocationYaw);
+        markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.aircraft));
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (droneMarker != null) {
+                        droneMarker.remove();
+                    } else {
+                        droneMarker = mMap.addMarker(markerOptions);
+                    }
+                } catch (NullPointerException e){
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
     TextureView.SurfaceTextureListener surfaceTextureListener = new TextureView.SurfaceTextureListener() {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
@@ -163,5 +238,29 @@ public class IniciarVuelo extends AppCompatActivity implements OnMapReadyCallbac
             toast.show();
         }
         recordingRoute.updateMap(mMap);
+        updateDroneLocation();
+        findDevice();
+    }
+
+    private void findDevice(){
+        LatLng pos = null;
+        if (droneMarker != null){
+            pos = droneMarker.getPosition();
+        } else {
+            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            Location location = null;
+            Criteria criteria = new Criteria();
+            try {
+                location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
+            } catch (SecurityException e) {
+                e.printStackTrace();
+            }
+            if (location != null){
+                pos = new LatLng(location.getLatitude(),location.getLongitude());
+            }
+        }
+        if (pos != null){
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(pos,13f));
+        }
     }
 }
