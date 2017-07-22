@@ -42,6 +42,7 @@ import dji.common.mission.waypoint.WaypointMissionFlightPathMode;
 import dji.common.mission.waypoint.WaypointMissionHeadingMode;
 import dji.common.mission.waypoint.WaypointMissionState;
 import dji.common.mission.waypoint.WaypointTurnMode;
+import dji.common.model.LocationCoordinate2D;
 import dji.common.product.Model;
 import dji.common.util.CommonCallbacks;
 import dji.sdk.base.BaseProduct;
@@ -103,7 +104,7 @@ public class IniciarVuelo extends AppCompatActivity implements OnMapReadyCallbac
         final TextureView videoView = (TextureView) findViewById(R.id.videoView);
         final View mapView = (getSupportFragmentManager().findFragmentById(R.id.mapView)).getView();
         Button showStatus = (Button) findViewById(R.id.showStatus);
-        ToggleButton controlCameraSwitch = (ToggleButton) findViewById(R.id.controlCameraSwitch);
+        final Button stopRoute = (Button) findViewById(R.id.stopRoute);
         ToggleButton mapSwitch = (ToggleButton) findViewById(R.id.mapSwitch);
         ToggleButton initRouteSwitch = (ToggleButton) findViewById(R.id.initRouteSwitch);
 
@@ -111,6 +112,12 @@ public class IniciarVuelo extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View view) {
 
+            }
+        });
+        stopRoute.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                stopFlight();
             }
         });
 
@@ -297,6 +304,35 @@ public class IniciarVuelo extends AppCompatActivity implements OnMapReadyCallbac
         if (waypointMissionOperator.getCurrentState() != WaypointMissionState.EXECUTION_PAUSED) {
             WaypointMission waypointMission = buildWaypointMission(buildWaypointList());
 
+            if (recordingRoute.getHome() == null){
+                ((Aircraft) DJIApplication.getProductInstance()).getFlightController().setHomeLocationUsingAircraftCurrentLocation(new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError djiError) {
+                        if (djiError == null){
+                            setResultToToast("Home set at current location");
+                        } else {
+                            setResultToToast("Error: " + djiError.getDescription());
+                            Log.e("SetHome",djiError.getDescription());
+                        }
+                    }
+                });
+            } else {
+                ((Aircraft) DJIApplication.getProductInstance()).getFlightController()
+                        .setHomeLocation(new LocationCoordinate2D(
+                                        recordingRoute.getHome().getLatitude(), recordingRoute.getHome().getLongitude()),
+                                new CommonCallbacks.CompletionCallback() {
+                                    @Override
+                                    public void onResult(DJIError djiError) {
+                                        if (djiError == null){
+                                            setResultToToast("Home set by route definition");
+                                        } else {
+                                            setResultToToast("Error: " + djiError.getDescription());
+                                            Log.e("SetHome",djiError.getDescription());
+                                        }
+                                    }
+                                });
+            }
+
             DJIError error = waypointMissionOperator.loadMission(waypointMission);
             if (error == null) {
                 setResultToToast("Mission loaded successfully");
@@ -377,9 +413,9 @@ public class IniciarVuelo extends AppCompatActivity implements OnMapReadyCallbac
         //Options for the waypoint mission
         WaypointMission.Builder waypointMissionBuilder = new WaypointMission.Builder()
                 .finishedAction(WaypointMissionFinishedAction.GO_HOME) //TODO: Get this from settings
-                .headingMode(WaypointMissionHeadingMode.USING_WAYPOINT_HEADING) //TODO: Maybe change this, not sure.
+                .headingMode(WaypointMissionHeadingMode.USING_WAYPOINT_HEADING)
                 .maxFlightSpeed(12f) //TODO: Get this from settings
-                .flightPathMode(WaypointMissionFlightPathMode.NORMAL) //TODO: Get this from settings
+                .flightPathMode(WaypointMissionFlightPathMode.NORMAL)
                 .setExitMissionOnRCSignalLostEnabled(true) //TODO: Get this from settings
                 .setGimbalPitchRotationEnabled(true)//This has to be true in order for each individual waypoint to be able to set its pitch.
                 .waypointList(waypointList);
@@ -416,7 +452,7 @@ public class IniciarVuelo extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
-    private void pauseFlight(){
+    public void pauseFlight(){
         DJIApplication.getWaypointMissionOperator().pauseMission(new CommonCallbacks.CompletionCallback() {
             @Override
             public void onResult(DJIError djiError) {
@@ -429,7 +465,7 @@ public class IniciarVuelo extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
     }
-    private void stopFlight(){
+    public void stopFlight(){
         DJIApplication.getWaypointMissionOperator().stopMission(new CommonCallbacks.CompletionCallback() {
             @Override
             public void onResult(DJIError djiError) {

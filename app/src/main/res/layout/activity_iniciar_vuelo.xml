@@ -19,7 +19,7 @@
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:map="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/map"
+        android:id="@+id/mapView"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -30,8 +30,8 @@
         map:layout_constraintLeft_toLeftOf="parent"
         map:layout_constraintRight_toRightOf="parent"
         map:layout_constraintTop_toTopOf="parent"
-        tools:context="es.p32gocamuco.tfgdrone3.CrearRuta"
-        map:layout_constraintVertical_bias="0.491" />
+        map:layout_constraintVertical_bias="0.491"
+        tools:context="es.p32gocamuco.tfgdrone3.CrearRuta" />
 
     <LinearLayout
         android:id="@+id/linearLayout2"
@@ -55,15 +55,6 @@
             android:text="@string/status" />
 
         <ToggleButton
-            android:id="@+id/controlCameraSwitch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:checked="false"
-            android:textOff="@string/automatedCamera"
-            android:textOn="@string/controlCamera" />
-
-        <ToggleButton
             android:id="@+id/mapSwitch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -72,6 +63,13 @@
             android:text="ToggleButton"
             android:textOff="@string/showMap"
             android:textOn="@string/showFPV" />
+
+        <Button
+            android:id="@+id/stopRoute"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="DetenerRuta" />
 
         <ToggleButton
             android:id="@+id/initRouteSwitch"
