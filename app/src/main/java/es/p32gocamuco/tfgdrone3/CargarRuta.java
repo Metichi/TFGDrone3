@@ -43,7 +43,7 @@ public class CargarRuta extends AppCompatActivity implements View.OnClickListene
     }
 
     private void updateUI(){
-        File path = DJIApplication.getAppContext().getFilesDir();
+        File path = this.getFilesDir();
         LinearLayout cargarRutaMenu = (LinearLayout) findViewById(R.id.cargarRutaMenu);
         cargarRutaMenu.removeAllViewsInLayout();
 
@@ -72,7 +72,7 @@ public class CargarRuta extends AppCompatActivity implements View.OnClickListene
     @Override
     public void onClick(View view) {
         final String filename = ((Button) view).getText().toString();
-        File path = DJIApplication.getAppContext().getFilesDir();
+        File path = CargarRuta.this.getFilesDir();
         final File file = new File(path,filename);
         new AlertDialog.Builder(this)
                 .setTitle("Accion")
@@ -80,7 +80,7 @@ public class CargarRuta extends AppCompatActivity implements View.OnClickListene
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         dialogInterface.dismiss();
-                        RecordingRoute r = RecordingRoute.loadRoute(filename);
+                        RecordingRoute r = RecordingRoute.loadRoute(filename, CargarRuta.this);
                         Intent intent = new Intent(CargarRuta.this,CrearRuta.class);
                         intent.putExtra("RECORDING_ROUTE",r);
                         startActivity(intent);

@@ -64,25 +64,25 @@ public class RecordingRoute implements Serializable {
         techniques.remove(t);
     }
 
-    public boolean saveRoute(){
+    public boolean saveRoute(Context context){
         try{
-            File path = DJIApplication.getAppContext().getFilesDir();
+            File path = context.getFilesDir();
             File savedRoute = new File(path,name+".adp");
             FileOutputStream fos = new FileOutputStream(savedRoute);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(this);
             oos.close();
             fos.close();
-            Toast.makeText(DJIApplication.getAppContext(),"Guardado: " + name + ".adp",Toast.LENGTH_SHORT).show();
+            setResultToToast("Guardado: " + name + ".adp",context);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
-    public static RecordingRoute loadRoute(String filename){
+    public static RecordingRoute loadRoute(String filename, Context context){
         try {
-            FileInputStream fis = DJIApplication.getAppContext().openFileInput(filename);
+            FileInputStream fis = context.openFileInput(filename);
             ObjectInputStream ois = new ObjectInputStream(fis);
             Object readObject = ois.readObject();
             ois.close();
@@ -294,5 +294,9 @@ public class RecordingRoute implements Serializable {
         for (TecnicaGrabacion t : techniques){
             t.initMapOptions();
         }
+    }
+
+    public void setResultToToast(String string, Context context){
+        Toast.makeText(context, string, Toast.LENGTH_SHORT).show();
     }
 }

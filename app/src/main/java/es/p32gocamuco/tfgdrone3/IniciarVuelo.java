@@ -480,6 +480,6 @@ public class IniciarVuelo extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void setResultToToast(String result){
-        Toast.makeText(DJIApplication.getAppContext(),result,Toast.LENGTH_SHORT).show();
+        Toast.makeText(this,result,Toast.LENGTH_SHORT).show();
     }
 }

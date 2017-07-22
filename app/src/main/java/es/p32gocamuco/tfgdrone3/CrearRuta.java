@@ -476,7 +476,7 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         recordingRoute.setName(editName.getText().toString());
-                        recordingRoute.saveRoute();
+                        recordingRoute.saveRoute(CrearRuta.this);
                         dialogInterface.dismiss();
                     }
                 })
