@@ -11,7 +11,10 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -32,7 +35,9 @@ public class RecordingRoute implements Serializable {
     private String name;
     private TecnicaGrabacion currentTechnique;
     private boolean routeReady = false;
+
     private Target home;
+
     private transient PolylineOptions polylineOptions; //Reflejan la ruta de todas las cámaras.
     private transient Polyline polyline;
     private static final long serialVersionUID = 100L;
@@ -98,7 +103,6 @@ public class RecordingRoute implements Serializable {
             return null;
         }
     }
-    //TODO: Probar si la apertura y guardado de archivos funcionan e implementar la clase Cargar Ruta
 
 
     public int getNumberObjectives(){
@@ -258,8 +262,24 @@ public class RecordingRoute implements Serializable {
         return this.routeReady;
     }
 
-    public void setHome(Target home) {
-        this.home = home;
+
+    public class Home extends Target{
+        public Home(LatLng location){
+            super(location,0,0);
+        }
+
+        @Override
+        public void initMarkerOptions(){
+            super.initMarkerOptions();
+            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
+        }
+    }
+    public void setHome(LatLng homeLocation) {
+        if (home != null){
+            home.setPosition(homeLocation);
+        } else {
+            this.home = new Home(homeLocation);
+        }
     }
 
     public Target getHome() {
@@ -286,6 +306,7 @@ public class RecordingRoute implements Serializable {
         for (RoutePoint waypoint : route) {
             waypoint.placeAtMap(gMap);
         }
+        if (home != null){ home.placeAtMap(gMap);}
     }
 
     public void initMapOptions(){
@@ -294,6 +315,7 @@ public class RecordingRoute implements Serializable {
         for (TecnicaGrabacion t : techniques){
             t.initMapOptions();
         }
+        if (home != null){home.initMarkerOptions();}
     }
 
     public void setResultToToast(String string, Context context){

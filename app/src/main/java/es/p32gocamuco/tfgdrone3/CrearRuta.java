@@ -33,7 +33,7 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
     RecordingRoute recordingRoute; //TODO: Esta iniciación sólo es valida si se viene del menú principal. Si se viene de cargar ruta, hay que iniciar con la ruta correspondiente.
-
+    boolean settingHome = false;
     private void addTargetToMap(LatLng latLng) {
         final Target nTarget = new Target(latLng, 0, 0);
         nTarget.setCurrentTechnique(recordingRoute.getCurrentTechnique());
@@ -193,6 +193,7 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
             @Override
             public void onClick(View view) {
                 recordingRoute.setCurrentTechnique(null);
+                settingHome = false;
                 updateUI();
             }
         });
@@ -244,7 +245,12 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
         GoogleMap.OnMapClickListener addPoint = new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(final LatLng latLng) {
-                addTargetToMap(latLng);
+                if (settingHome){
+                    recordingRoute.setHome(latLng);
+                    recordingRoute.getHome().placeAtMap(mMap);
+                } else {
+                    addTargetToMap(latLng);
+                }
             }
         };
         GoogleMap.OnMapClickListener mapInactive = new GoogleMap.OnMapClickListener() {
@@ -258,7 +264,7 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
         setTitle(recordingRoute.getName());
 
 
-        if (recordingRoute.getCurrentTechnique() != null) {
+        if (recordingRoute.getCurrentTechnique() != null || settingHome) {
             finishBtn.setVisibility(View.VISIBLE);
             addBtn.setVisibility(View.GONE);
             saveBtn.setVisibility(View.GONE);
@@ -273,7 +279,7 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
         }
 
         //Gestión de los botones de calcular e iniciar ruta.
-        if (recordingRoute.calcRouteAviable()) {
+        if (recordingRoute.calcRouteAviable()&&!settingHome) {
             calcBtn.setVisibility(recordingRoute.getRouteReady() ? View.GONE : View.VISIBLE);
             initBtn.setVisibility(!recordingRoute.getRouteReady() ? View.GONE : View.VISIBLE);
 
@@ -345,8 +351,8 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
             @Override
             public void onClick(View view) {
                 alertdialog.dismiss();
-                //TODO: Añade un botón de home cuando se pulse y elimina el anterior si existiera
-
+                settingHome = true;
+                updateUI();
             }
         });
         addAcimutal.setOnClickListener(new View.OnClickListener() {
@@ -396,33 +402,39 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
 
         latitud.setText(String.format("%.4f", o.getLatitude()));
         longitud.setText(String.format("%.4f", o.getLongitude()));
-        altura.setText(String.format("%.2f", o.getHeight()));
-        tiempo.setText(String.format("%.2f", o.getTime()));
-        accion.setText(o.getAccion().toString().replace("_", " "));
-
-        if (o instanceof RoutePoint) {
-            RoutePoint c = (RoutePoint) o;
-            LinearLayout cameraInfo = (LinearLayout) getLayoutInflater().inflate(R.layout.info_camera_marker, null);
-            TextView pitch, yaw, hSpeed, vSpeed, speedBearing, tSpeed;
-            pitch = (TextView) cameraInfo.findViewById(R.id.pitch);
-            yaw = (TextView) cameraInfo.findViewById(R.id.yaw);
-            hSpeed = (TextView) cameraInfo.findViewById(R.id.hSpeed);
-            vSpeed = (TextView) cameraInfo.findViewById(R.id.vSpeed);
-            speedBearing = (TextView) cameraInfo.findViewById(R.id.speedBearing);
-            tSpeed = (TextView) cameraInfo.findViewById(R.id.tSpeed);
-
-            pitch.setText(String.format("%.2f", c.getPitch()));
-            yaw.setText(String.format("%.2f", c.getYaw()));
-            hSpeed.setText(String.format("%.2f", c.getSpeed().getVelocidadNESO()));
-            vSpeed.setText(String.format("%.2f", c.getSpeed().getVertical()));
-            speedBearing.setText(String.format("%.2f", c.getSpeed().getDireccion()));
-            tSpeed.setText(String.format("%.2f", c.getSpeed().getModulo_v()));
-
-            infoWindow.addView(cameraInfo);
-
-            markerIndex.setText(String.format("RoutePoint #%d", recordingRoute.getIndexFromMarker(marker)));
+        if (o instanceof RecordingRoute.Home){
+            markerIndex.setText("HOME");
+            altura.setVisibility(View.INVISIBLE);
+            tiempo.setVisibility(View.INVISIBLE);
         } else {
-            markerIndex.setText(String.format("Target #%d", recordingRoute.getIndexFromMarker(marker)));
+            altura.setText(String.format("%.2f", o.getHeight()));
+            tiempo.setText(String.format("%.2f", o.getTime()));
+            accion.setText(o.getAccion().toString().replace("_", " "));
+
+            if (o instanceof RoutePoint) {
+                RoutePoint c = (RoutePoint) o;
+                LinearLayout cameraInfo = (LinearLayout) getLayoutInflater().inflate(R.layout.info_camera_marker, null);
+                TextView pitch, yaw, hSpeed, vSpeed, speedBearing, tSpeed;
+                pitch = (TextView) cameraInfo.findViewById(R.id.pitch);
+                yaw = (TextView) cameraInfo.findViewById(R.id.yaw);
+                hSpeed = (TextView) cameraInfo.findViewById(R.id.hSpeed);
+                vSpeed = (TextView) cameraInfo.findViewById(R.id.vSpeed);
+                speedBearing = (TextView) cameraInfo.findViewById(R.id.speedBearing);
+                tSpeed = (TextView) cameraInfo.findViewById(R.id.tSpeed);
+
+                pitch.setText(String.format("%.2f", c.getPitch()));
+                yaw.setText(String.format("%.2f", c.getYaw()));
+                hSpeed.setText(String.format("%.2f", c.getSpeed().getVelocidadNESO()));
+                vSpeed.setText(String.format("%.2f", c.getSpeed().getVertical()));
+                speedBearing.setText(String.format("%.2f", c.getSpeed().getDireccion()));
+                tSpeed.setText(String.format("%.2f", c.getSpeed().getModulo_v()));
+
+                infoWindow.addView(cameraInfo);
+
+                markerIndex.setText(String.format("RoutePoint #%d", recordingRoute.getIndexFromMarker(marker)));
+            } else {
+                markerIndex.setText(String.format("Target #%d", recordingRoute.getIndexFromMarker(marker)));
+            }
         }
 
         return infoWindow;
