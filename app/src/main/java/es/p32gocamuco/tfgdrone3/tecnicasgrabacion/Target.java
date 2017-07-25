@@ -2,6 +2,8 @@ package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
 
 import android.app.Activity;
 import android.support.annotation.Nullable;
+import android.view.LayoutInflater;
+import android.view.View;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -55,8 +57,8 @@ public class Target implements Serializable {
             }
 
             @Override
-            void showTechniqueSettingsMenu(Activity activity) {
-
+            public View getInflatedLayout(LayoutInflater inflater) {
+                return null;
             }
 
             @Override

@@ -3,6 +3,8 @@ package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
 import android.app.Activity;
 import android.graphics.Color;
 import android.support.annotation.Nullable;
+import android.view.LayoutInflater;
+import android.view.View;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Polyline;
@@ -144,7 +146,7 @@ public abstract class TecnicaGrabacion implements Serializable {
     }
 
 
-    abstract void showTechniqueSettingsMenu(Activity activity);
+    public abstract View getInflatedLayout(LayoutInflater inflater);
 
 
     public Polyline getPolyline() {

@@ -2,8 +2,21 @@ package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
 
 import android.app.Activity;
 import android.location.Location;
+import android.support.v7.app.AlertDialog;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import java.util.ListIterator;
+
+import es.p32gocamuco.tfgdrone3.CrearRuta;
+import es.p32gocamuco.tfgdrone3.R;
 
 /*
  * Created by Manuel Gómez Castro on 2/07/17.
@@ -77,64 +90,6 @@ public class TecnicaAcimutal extends   TecnicaGrabacion{
         }
     }
 
-    @Override
-    public void showTechniqueSettingsMenu(final Activity activity) { //TODO: Null point exception en los views
-        /*
-        LinearLayout menu = (LinearLayout) activity.findViewById(R.id.settingsAcimutal);
-        final EditText altura = (EditText) activity.findViewById(R.id.alturaSobreObjetivo);
-        final EditText NESO = (EditText) activity.findViewById(R.id.orientacionNESO);
-        final ToggleButton toggleSigueRuta = (ToggleButton) activity.findViewById(R.id.toggleSigueRuta);
-        final TextView orientacionLabel = (TextView) activity.findViewById(R.id.orientacionNESOLabel);
-        AlertDialog alertDialog;
-
-        altura.setText(Double.toString(this.alturaSobreObjetivo));
-        NESO.setText(Double.toString(orientacionNESO));
-
-        toggleSigueRuta.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                if (b){
-                    orientacionSegunObjetivo = true;
-                    NESO.setVisibility(View.GONE);
-                    orientacionLabel.setVisibility(View.GONE);
-                } else {
-                    orientacionSegunObjetivo = false;
-                    orientacionLabel.setVisibility(View.VISIBLE);
-                    NESO.setVisibility(View.VISIBLE);
-                }
-            }
-        });
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        builder.setTitle(R.string.showAddAcimutalMenu);
-        builder.setView(menu);
-        builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                dialogInterface.cancel();
-            }
-        });
-        builder.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        if (altura.getText().toString().trim().length()==0){
-                            setAlturaSobreObjetivo(10);
-                        } else {
-                            setAlturaSobreObjetivo(Double.parseDouble(altura.getText().toString()));
-                        }
-                        if (NESO.getText().toString().trim().length() == 0){
-                            setOrientacionNESO(0);
-                        } else {
-                            setOrientacionNESO(Double.parseDouble(NESO.getText().toString()));
-                        }
-                    }
-                });
-
-                alertDialog = builder.create();
-        alertDialog.show();
-        */
-    }
-
     public void setAlturaSobreObjetivo(double alturaSobreObjetivo) {
         this.alturaSobreObjetivo = alturaSobreObjetivo;
     }
@@ -145,5 +100,77 @@ public class TecnicaAcimutal extends   TecnicaGrabacion{
 
     public void setOrientacionSegunObjetivo(boolean orientacionSegunObjetivo) {
         this.orientacionSegunObjetivo = orientacionSegunObjetivo;
+    }
+
+    @Override
+    public View getInflatedLayout(LayoutInflater inflater){
+        LinearLayout menu = (LinearLayout) inflater.inflate(R.layout.settings_menu_acimutal, null);
+        final EditText altura = (EditText) menu.findViewById(R.id.alturaSobreObjetivo);
+        final EditText NESO = (EditText) menu.findViewById(R.id.orientacionNESO);
+        final ToggleButton toggleSigueRuta = (ToggleButton) menu.findViewById(R.id.toggleSigueRuta);
+        final TextView orientacionLabel = (TextView) menu.findViewById(R.id.orientacionNESOLabel);
+
+        altura.setText(String.format("%s", this.getAlturaSobreObjetivo()));
+        NESO.setText(String.format("%s", this.getOrientacionNESO()));
+
+        toggleSigueRuta.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                compoundButton.setChecked(b);
+                if (b) {
+                    TecnicaAcimutal.this.setOrientacionSegunObjetivo(true);
+                    NESO.setVisibility(View.GONE);
+                    orientacionLabel.setVisibility(View.GONE);
+                } else {
+                    TecnicaAcimutal.this.setOrientacionSegunObjetivo(false);
+                    orientacionLabel.setVisibility(View.VISIBLE);
+                    NESO.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+
+        altura.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if (altura.getText().toString().trim().length() == 0) {
+                    TecnicaAcimutal.this.setAlturaSobreObjetivo(10);
+                } else {
+                    TecnicaAcimutal.this.setAlturaSobreObjetivo(Double.parseDouble(altura.getText().toString().replace(",", ".")));
+                }
+            }
+        });
+
+        NESO.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if (NESO.getText().toString().trim().length() == 0) {
+                    TecnicaAcimutal.this.setOrientacionNESO(0);
+                } else {
+                    TecnicaAcimutal.this.setOrientacionNESO(Double.parseDouble(NESO.getText().toString().replace(",", ".")));
+                }
+            }
+        });
+
+        return menu;
     }
 }

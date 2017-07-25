@@ -9,32 +9,29 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.Polyline;
 
 import dji.sdk.base.BaseProduct;
 import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.RoutePoint;
 import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Target;
 import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.RecordingRoute;
 import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.TecnicaAcimutal;
+import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.TecnicaGrabacion;
 
 public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-    AlertDialog alertdialog;
     RecordingRoute recordingRoute; //TODO: Esta iniciación sólo es valida si se viene del menú principal. Si se viene de cargar ruta, hay que iniciar con la ruta correspondiente.
 
     private void addTargetToMap(LatLng latLng) {
@@ -327,23 +324,9 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
         ScrollView addMenu = (ScrollView) getLayoutInflater().inflate(R.layout.add_menu, null);
         Button addHome = (Button) addMenu.findViewById(R.id.addHome);
         Button addAcimutal = (Button) addMenu.findViewById(R.id.addAcimutal);
+        final AlertDialog alertdialog;
 
 
-        addHome.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                alertdialog.dismiss();
-                //TODO: Añade un botón de home cuando se pulse y elimina el anterior si existiera
-
-            }
-        });
-        addAcimutal.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showAddAcimutalMenu();
-                updateUI();
-            }
-        });
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.addItemtoMapTitle);
         builder.setView(addMenu);
@@ -357,68 +340,47 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
 
         alertdialog = builder.create();
         alertdialog.show();
+
+        addHome.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                alertdialog.dismiss();
+                //TODO: Añade un botón de home cuando se pulse y elimina el anterior si existiera
+
+            }
+        });
+        addAcimutal.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                TecnicaAcimutal newTecnique = new TecnicaAcimutal(recordingRoute.isCurrentlyRecording());
+                showAddTechniqueMenu(newTecnique,getString(R.string.addAcimutal));
+                alertdialog.dismiss();
+                updateUI();
+            }
+        });
     }
 
-    protected void showAddAcimutalMenu(){
-        final TecnicaAcimutal newTechnique = new TecnicaAcimutal(recordingRoute.isCurrentlyRecording());
-        LinearLayout menu = (LinearLayout) getLayoutInflater().inflate(R.layout.settings_menu_acimutal, null);
-        final EditText altura = (EditText) menu.findViewById(R.id.alturaSobreObjetivo);
-        final EditText NESO = (EditText) menu.findViewById(R.id.orientacionNESO);
-        final ToggleButton toggleSigueRuta = (ToggleButton) menu.findViewById(R.id.toggleSigueRuta);
-        final TextView orientacionLabel = (TextView) menu.findViewById(R.id.orientacionNESOLabel);
-        AlertDialog acimutalDialog;
-        AlertDialog.Builder acimutalDialogBuilder = new AlertDialog.Builder(CrearRuta.this);
+    protected void showAddTechniqueMenu(final TecnicaGrabacion newTechnique, String menuTitle){
 
-        altura.setText(String.format("%s", newTechnique.getAlturaSobreObjetivo()));
-        NESO.setText(String.format("%s", newTechnique.getOrientacionNESO()));
-
-        toggleSigueRuta.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                compoundButton.setChecked(b);
-                if (b) {
-                    newTechnique.setOrientacionSegunObjetivo(true);
-                    NESO.setVisibility(View.GONE);
-                    orientacionLabel.setVisibility(View.GONE);
-                } else {
-                    newTechnique.setOrientacionSegunObjetivo(false);
-                    orientacionLabel.setVisibility(View.VISIBLE);
-                    NESO.setVisibility(View.VISIBLE);
-                }
-            }
-        });
-
-
-        acimutalDialogBuilder.setTitle(R.string.addAcimutal);
-        acimutalDialogBuilder.setView(menu);
-        acimutalDialogBuilder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                dialogInterface.cancel();
-                updateUI();
-            }
-        });
-        acimutalDialogBuilder.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                if (altura.getText().toString().trim().length() == 0) {
-                    newTechnique.setAlturaSobreObjetivo(10);
-                } else {
-                    newTechnique.setAlturaSobreObjetivo(Double.parseDouble(altura.getText().toString().replace(",", ".")));
-                }
-                if (NESO.getText().toString().trim().length() == 0) {
-                    newTechnique.setOrientacionNESO(0);
-                } else {
-                    newTechnique.setOrientacionNESO(Double.parseDouble(NESO.getText().toString().replace(",", ".")));
-                }
-                recordingRoute.addTechnique(newTechnique);
-                updateUI();
-            }
-        });
-
-        acimutalDialog = acimutalDialogBuilder.create();
-        alertdialog.dismiss();
-        acimutalDialog.show();
+        new AlertDialog.Builder(CrearRuta.this)
+                .setTitle(menuTitle)
+                .setView(newTechnique.getInflatedLayout(getLayoutInflater()))
+                .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.cancel();
+                        updateUI();
+                    }
+                })
+                .setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        recordingRoute.addTechnique(newTechnique);
+                        updateUI();
+                    }
+                })
+                .create()
+                .show();
         updateUI();
     }
 
