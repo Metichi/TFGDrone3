@@ -5,6 +5,7 @@ package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
  */
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -12,6 +13,8 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -36,7 +39,7 @@ public class RecordingRoute implements Serializable {
     private TecnicaGrabacion currentTechnique;
     private boolean routeReady = false;
 
-    private Target home;
+    private Home home;
 
     private transient PolylineOptions polylineOptions; //Reflejan la ruta de todas las cámaras.
     private transient Polyline polyline;
@@ -263,26 +266,54 @@ public class RecordingRoute implements Serializable {
     }
 
 
-    public class Home extends Target{
-        public Home(LatLng location){
+    public static class Home extends Target{
+        private double radius;
+        private CircleOptions circleOptions;
+        private Circle circle;
+        public Home(LatLng location, double radius){
             super(location,0,0);
+            this.radius = radius;
+            initMarkerOptions();
+        }
+
+        public void setRadius(double radius) {
+            this.radius = radius;
+        }
+
+        public double getRadius() {
+            return radius;
         }
 
         @Override
         public void initMarkerOptions(){
             super.initMarkerOptions();
             markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
+            circleOptions = new CircleOptions()
+                    .clickable(false)
+                    .radius(radius)
+                    .center(this.getLatLng())
+                    .strokeColor(R.color.circleColor);
+        }
+
+        @Override
+        public void placeAtMap(GoogleMap gMap) {
+            super.placeAtMap(gMap);
+            if (circle != null) {circle.remove();}
+            circleOptions.center(this.getLatLng());
+            circle = gMap.addCircle(circleOptions);
         }
     }
-    public void setHome(LatLng homeLocation) {
+    public void setHome(Home h) {
         if (home != null){
-            home.setPosition(homeLocation);
+            home.setPosition(h.getLatLng());
+            home.setRadius(h.getRadius());
+
         } else {
-            this.home = new Home(homeLocation);
+            this.home = h;
         }
     }
 
-    public Target getHome() {
+    public Home getHome() {
         return home;
     }
 

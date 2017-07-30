@@ -2,6 +2,8 @@ package es.p32gocamuco.tfgdrone3;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -246,7 +248,11 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
             @Override
             public void onMapClick(final LatLng latLng) {
                 if (settingHome){
-                    recordingRoute.setHome(latLng);
+                    SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(CrearRuta.this);
+                    double radius = Double.parseDouble(
+                            pref.getString("max_distance_setting_key",""));
+
+                    recordingRoute.setHome(new RecordingRoute.Home(latLng,radius));
                     recordingRoute.getHome().placeAtMap(mMap);
                 } else {
                     addTargetToMap(latLng);
