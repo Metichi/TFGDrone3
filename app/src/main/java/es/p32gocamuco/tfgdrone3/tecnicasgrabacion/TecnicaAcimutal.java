@@ -1,8 +1,6 @@
 package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
 
-import android.app.Activity;
 import android.location.Location;
-import android.support.v7.app.AlertDialog;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -15,7 +13,6 @@ import android.widget.ToggleButton;
 
 import java.util.ListIterator;
 
-import es.p32gocamuco.tfgdrone3.CrearRuta;
 import es.p32gocamuco.tfgdrone3.R;
 
 /*
@@ -104,7 +101,7 @@ public class TecnicaAcimutal extends   TecnicaGrabacion{
 
     @Override
     public View getInflatedLayout(LayoutInflater inflater){
-        LinearLayout menu = (LinearLayout) inflater.inflate(R.layout.settings_menu_acimutal, null);
+        LinearLayout menu = (LinearLayout) inflater.inflate(R.layout.add_acimutal_menu, null);
         final EditText altura = (EditText) menu.findViewById(R.id.alturaSobreObjetivo);
         final EditText NESO = (EditText) menu.findViewById(R.id.orientacionNESO);
         final ToggleButton toggleSigueRuta = (ToggleButton) menu.findViewById(R.id.toggleSigueRuta);

@@ -15,6 +15,40 @@
     <string name="title_activity_settings">Settings</string>
 
     <!-- Strings related to Settings -->
+    <string name="route_settings">Ajustes de ruta</string>
+    <string name="end_route_acction">Accion tras acabar la ruta</string>
+    <string-array name="end_route_acction_options">
+        <item>Controlar manualmente</item>
+        <item>Volver a Home</item>
+        <item>Aterrizar</item>
+        <item>Volver al primer punto</item>
+    </string-array>
+    <string-array name="end_route_acction_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+    <string name="min_height_setting">Altura mínima</string>
+    <string name="max_height_setting">Altura máxima</string>
+    <string name="max_distance_setting">Distancia máxima</string>
+
+    <string name="drone_settings">Ajustes del drone</string>
+    <string name="emergency_setting">Ajuste en caso de emergencia</string>
+    <string-array name="emergency_setting_options">
+        <item>Volver a Home</item>
+        <item>Aterrizar inmediatamente</item>
+    </string-array>
+    <string-array name="emergency_setting_values">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+    <string name="max_speed_setting">Velocidad máxima</string>
+
+    <string name="gimball_settings">Ajustes del gimball</string>
+    <string name="yaw_range_setting">Amplitud de giro en grados</string>
+    <string name="yaw_speed_setting">Velocidad máxima de giro (Yaw)</string>
+    <string name="pitch_speed_setting">Velocidad máxima de giro (pitch)</string>
 
     <!-- Example General settings -->
     <string name="pref_header_general">General</string>

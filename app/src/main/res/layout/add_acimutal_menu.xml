@@ -18,7 +18,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:inputType="numberDecimal" />
+        android:inputType="numberDecimal"
+        android:selectAllOnFocus="true"/>
 
     <TextView
         android:id="@+id/Orientacion"
@@ -47,6 +48,7 @@
         android:layout_height="wrap_content"
         android:ems="10"
         android:hint="@string/orientacionHint"
-        android:inputType="numberDecimal" />
+        android:inputType="numberDecimal"
+        android:selectAllOnFocus="true"/>
 
 </LinearLayout>
