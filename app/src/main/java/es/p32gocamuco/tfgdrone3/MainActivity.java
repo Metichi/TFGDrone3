@@ -37,6 +37,13 @@ import dji.sdk.base.BaseComponent;
 import dji.sdk.base.BaseProduct;
 import dji.sdk.sdkmanager.DJISDKManager;
 
+/**
+ * Front Screen of the application
+ *
+ * This activity displays a front screen with a series of buttons that will take the application to a series
+ * of different activities. It also registers the DJI SDK to ensure its functions will work, since many
+ * of them are register dependant.
+ */
 public class MainActivity extends AppCompatActivity {
     BroadcastReceiver mReciever = new BroadcastReceiver() {
         @Override
@@ -44,6 +51,14 @@ public class MainActivity extends AppCompatActivity {
             updateUI();
         }
     };
+
+    /**
+     * onCreate override
+     *
+     * Permissions for the aplication are requested at runtime if the API is greater than 22.
+     * There is also a reciever innitiated to listen to {@link DJIApplication}
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
                             Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.ACCESS_FINE_LOCATION,
                             Manifest.permission.CHANGE_WIFI_STATE, Manifest.permission.MOUNT_UNMOUNT_FILESYSTEMS,
                             Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.SYSTEM_ALERT_WINDOW,
-                            Manifest.permission.READ_PHONE_STATE,
+                            Manifest.permission.READ_PHONE_STATE, Manifest.permission.BLUETOOTH,Manifest.permission.BLUETOOTH_ADMIN
                     }
                     , 1);
         }
@@ -77,6 +92,13 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
+
+    /**
+     * Innitialization of the User Interface
+     *
+     * The buttons are defined and OnClickListeners are created for each of them.
+     * Also, text that should not change during runtime is assigned here.
+     */
     protected void initUI(){
         TextView sdkVersion, modeloDispositivo;
         Button createRoute, loadRoute;
@@ -122,6 +144,9 @@ public class MainActivity extends AppCompatActivity {
         updateUI();
     }
 
+    /**
+     *
+     */
     private void updateUI(){
         //Obtenemos el nombre del dispositivo
         BaseProduct mProduct = DJIApplication.getProductInstance();
