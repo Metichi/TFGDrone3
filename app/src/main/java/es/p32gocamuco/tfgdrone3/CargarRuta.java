@@ -1,5 +1,6 @@
 package es.p32gocamuco.tfgdrone3;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetManager;
@@ -42,6 +43,11 @@ public class CargarRuta extends AppCompatActivity implements View.OnClickListene
         super.onRestart();
     }
 
+
+    /**
+     * This method displays the Route files stored on the device and sets the listener to
+     * {@link CargarRuta#onClick(View)}
+     */
     private void updateUI(){
         File path = this.getFilesDir();
         LinearLayout cargarRutaMenu = (LinearLayout) findViewById(R.id.cargarRutaMenu);
@@ -69,6 +75,14 @@ public class CargarRuta extends AppCompatActivity implements View.OnClickListene
 
     }
 
+    /**
+     * This method displays the options aviable to each file
+     *
+     * Once a file is selected, the user can elect to delete it or load it.
+     * If the load option is called, {@link RecordingRoute#loadRoute(String, Context)} is called and then
+     * passed as a serializable to {@link CrearRuta}
+     * @param view
+     */
     @Override
     public void onClick(View view) {
         final String filename = ((Button) view).getText().toString();

@@ -161,5 +161,4 @@ public class MainActivity extends AppCompatActivity {
             modeloDispositivo.setText(R.string.noDispositivo);
         }
     }
-
 }

@@ -34,8 +34,220 @@ import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.TecnicaGrabacion;
 public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-    RecordingRoute recordingRoute; //TODO: Esta iniciación sólo es valida si se viene del menú principal. Si se viene de cargar ruta, hay que iniciar con la ruta correspondiente.
+    RecordingRoute recordingRoute;
     boolean settingHome = false;
+
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_crear_ruta);
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+        Intent intent = getIntent();
+        if (!intent.hasExtra("RECORDING_ROUTE")){
+            recordingRoute = new RecordingRoute();
+        } else {
+            recordingRoute = (RecordingRoute) intent.getSerializableExtra("RECORDING_ROUTE");
+            recordingRoute.initMapOptions();
+        }
+    }
+
+    private void initUI() {
+        final Button addBtn, calcBtn, saveBtn, finishBtn, initBtn;
+        addBtn = (Button) findViewById(R.id.addCR);
+        calcBtn = (Button) findViewById(R.id.calcRutaCR);
+        saveBtn = (Button) findViewById(R.id.saveCR);
+        finishBtn = (Button) findViewById(R.id.finalizar);
+        initBtn = (Button) findViewById(R.id.initRuta);
+
+        setTitle(recordingRoute.getName());
+        addBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                displayAddMenu();
+                updateUI();
+            }
+        });
+
+        finishBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                recordingRoute.setCurrentTechnique(null);
+                settingHome = false;
+                updateUI();
+            }
+        });
+        calcBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                recordingRoute.calculateRoute();
+                if (recordingRoute.getRouteReady()) {
+                    RoutePoint[] route = recordingRoute.getRoute();
+                    for (RoutePoint waypoint : route) {
+                        waypoint.placeAtMap(mMap);
+                        recordingRoute.placeAtMap(mMap);
+                    }
+                }
+                updateUI();
+            }
+        });
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showSaveMenu();
+            }
+        });
+
+        initBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                BaseProduct product = DJIApplication.getProductInstance();
+                if ((product == null) || !product.isConnected()) {
+                    Toast.makeText(CrearRuta.this, getString(R.string.noConectado), Toast.LENGTH_SHORT).show();
+                } else {
+                    Intent intent = new Intent(CrearRuta.this, IniciarVuelo.class);
+                    intent.putExtra("RECORDING_ROUTE",recordingRoute);
+                    startActivity(intent);
+                }
+            }
+        });
+        updateUI();
+    }
+
+    /**
+     * This method manages the UI status
+     *
+     * Depending on the status of the route, this method will be called to update the UI to set the visibility
+     * of the items on the screen.
+     */
+    private void updateUI() {
+        final Button addBtn, calcBtn, saveBtn, finishBtn, initBtn;
+        addBtn = (Button) findViewById(R.id.addCR);
+        calcBtn = (Button) findViewById(R.id.calcRutaCR);
+        saveBtn = (Button) findViewById(R.id.saveCR);
+        finishBtn = (Button) findViewById(R.id.finalizar);
+        initBtn = (Button) findViewById(R.id.initRuta);
+
+        GoogleMap.OnMapClickListener addPoint = new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(final LatLng latLng) {
+                if (settingHome){
+                    SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(CrearRuta.this);
+                    double radius = Double.parseDouble(
+                            pref.getString("max_distance_setting_key",""));
+
+                    recordingRoute.setHome(new RecordingRoute.Home(latLng,radius));
+                    recordingRoute.getHome().placeAtMap(mMap);
+                } else {
+                    addTargetToMap(latLng);
+                }
+            }
+        };
+        GoogleMap.OnMapClickListener mapInactive = new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+
+            }
+        };
+
+        /**
+         * This field is used when a marker should respond to a tap by displaying an information menu.
+         */
+        GoogleMap.OnMarkerClickListener markerClickListener = new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                marker.showInfoWindow();
+                return false;
+            }
+        };
+
+        /**
+         * This field is used when a marker should remain irresponsive to taps.
+         */
+        GoogleMap.OnMarkerClickListener markerInactive = new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                return true;
+            }
+        };
+
+
+        setTitle(recordingRoute.getName());
+
+
+        if (recordingRoute.getCurrentTechnique() != null || settingHome) {
+            finishBtn.setVisibility(View.VISIBLE);
+            addBtn.setVisibility(View.GONE);
+            saveBtn.setVisibility(View.GONE);
+            mMap.setOnMapClickListener(addPoint);
+            mMap.setOnMarkerClickListener(markerInactive);
+        } else {
+            finishBtn.setVisibility(View.GONE);
+            addBtn.setVisibility(View.VISIBLE);
+            saveBtn.setVisibility(View.VISIBLE);
+            mMap.setOnMapClickListener(mapInactive);
+            mMap.setOnMarkerClickListener(markerClickListener);
+        }
+
+        //Gestión de los botones de calcular e iniciar ruta.
+        if (recordingRoute.calcRouteAviable()&&!settingHome) {
+            calcBtn.setVisibility(recordingRoute.getRouteReady() ? View.GONE : View.VISIBLE);
+            initBtn.setVisibility(!recordingRoute.getRouteReady() ? View.GONE : View.VISIBLE);
+
+        } else {
+            calcBtn.setVisibility(View.GONE);
+            initBtn.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * Manipulates the map once available.
+     * This callback is triggered when the map is ready to be used.
+     * This method innitalizes the map options to enable zoom, locate button, and the adapter that
+     * displays the information window.
+     * If Google Play services is not installed on the device, the user will be prompted to install
+     * it inside the SupportMapFragment. This method will only be triggered once the user has
+     * installed Google Play services and returned to the app.
+     *
+     * @see CrearRuta#buildInfoWindow(Marker)
+     */
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+        mMap.getUiSettings().setMapToolbarEnabled(false);
+        mMap.getUiSettings().setZoomControlsEnabled(true);
+        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+            @Override
+            public View getInfoWindow(Marker marker) {
+                return null;
+            }
+
+            @Override
+            public View getInfoContents(Marker marker) {
+                return buildInfoWindow(marker);
+            }
+        });
+
+        try {
+            mMap.setMyLocationEnabled(true);
+        } catch (SecurityException e) {
+            Toast toast = Toast.makeText(this, "No hay permisos para obtener localización", Toast.LENGTH_SHORT);
+            toast.show();
+        }
+        recordingRoute.updateMap(mMap);
+        initUI();
+    }
+
+
+    /**
+     * Adds a target to the current technique
+     *
+     * While creating a technique, this method is called every time the map is tapped. It displays a
+     * menu in wich the properties of a {@link Target} are defined. If the menu is accepted, the new target
+     * is placed on the map and added to the current technique. If cancelled, the target is discarded.
+     * @param latLng
+     */
     private void addTargetToMap(LatLng latLng) {
         final Target nTarget = new Target(latLng, 0, 0);
         nTarget.setCurrentTechnique(recordingRoute.getCurrentTechnique());
@@ -144,195 +356,14 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
         updateUI();
     }
 
-    GoogleMap.OnMarkerClickListener markerClickListener = new GoogleMap.OnMarkerClickListener() {
-        @Override
-        public boolean onMarkerClick(Marker marker) {
-            marker.showInfoWindow();
-            return false;
-        }
-    };
-    GoogleMap.OnMarkerClickListener markerInactive = new GoogleMap.OnMarkerClickListener() {
-        @Override
-        public boolean onMarkerClick(Marker marker) {
-            return true;
-        }
-    };
-
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_crear_ruta);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-        Intent intent = getIntent();
-        if (!intent.hasExtra("RECORDING_ROUTE")){
-            recordingRoute = new RecordingRoute();
-        } else {
-            recordingRoute = (RecordingRoute) intent.getSerializableExtra("RECORDING_ROUTE");
-            recordingRoute.initMapOptions();
-        }
-    }
-
-    private void initUI() {
-        final Button addBtn, calcBtn, saveBtn, finishBtn, initBtn;
-        addBtn = (Button) findViewById(R.id.addCR);
-        calcBtn = (Button) findViewById(R.id.calcRutaCR);
-        saveBtn = (Button) findViewById(R.id.saveCR);
-        finishBtn = (Button) findViewById(R.id.finalizar);
-        initBtn = (Button) findViewById(R.id.initRuta);
-
-        setTitle(recordingRoute.getName());
-        addBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                displayAddMenu();
-                updateUI();
-            }
-        });
-
-        finishBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                recordingRoute.setCurrentTechnique(null);
-                settingHome = false;
-                updateUI();
-            }
-        });
-        calcBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                recordingRoute.calculateRoute();
-                if (recordingRoute.getRouteReady()) {
-                    RoutePoint[] route = recordingRoute.getRoute();
-                    for (RoutePoint waypoint : route) {
-                        waypoint.placeAtMap(mMap);
-                        recordingRoute.placeAtMap(mMap);
-                    }
-                }
-                updateUI();
-            }
-        });
-        saveBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showSaveMenu();
-            }
-        });
-
-        initBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                BaseProduct product = DJIApplication.getProductInstance();
-                if ((product == null) || !product.isConnected()) {
-                    Toast.makeText(CrearRuta.this, getString(R.string.noConectado), Toast.LENGTH_SHORT).show();
-                } else {
-                    Intent intent = new Intent(CrearRuta.this, IniciarVuelo.class);
-                    intent.putExtra("RECORDING_ROUTE",recordingRoute);
-                    startActivity(intent);
-                }
-            }
-        });
-        updateUI();
-    }
-
-    private void updateUI() {
-        final Button addBtn, calcBtn, saveBtn, finishBtn, initBtn;
-        addBtn = (Button) findViewById(R.id.addCR);
-        calcBtn = (Button) findViewById(R.id.calcRutaCR);
-        saveBtn = (Button) findViewById(R.id.saveCR);
-        finishBtn = (Button) findViewById(R.id.finalizar);
-        initBtn = (Button) findViewById(R.id.initRuta);
-
-        GoogleMap.OnMapClickListener addPoint = new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(final LatLng latLng) {
-                if (settingHome){
-                    SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(CrearRuta.this);
-                    double radius = Double.parseDouble(
-                            pref.getString("max_distance_setting_key",""));
-
-                    recordingRoute.setHome(new RecordingRoute.Home(latLng,radius));
-                    recordingRoute.getHome().placeAtMap(mMap);
-                } else {
-                    addTargetToMap(latLng);
-                }
-            }
-        };
-        GoogleMap.OnMapClickListener mapInactive = new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng latLng) {
-
-            }
-        };
-
-
-        setTitle(recordingRoute.getName());
-
-
-        if (recordingRoute.getCurrentTechnique() != null || settingHome) {
-            finishBtn.setVisibility(View.VISIBLE);
-            addBtn.setVisibility(View.GONE);
-            saveBtn.setVisibility(View.GONE);
-            mMap.setOnMapClickListener(addPoint);
-            mMap.setOnMarkerClickListener(markerInactive);
-        } else {
-            finishBtn.setVisibility(View.GONE);
-            addBtn.setVisibility(View.VISIBLE);
-            saveBtn.setVisibility(View.VISIBLE);
-            mMap.setOnMapClickListener(mapInactive);
-            mMap.setOnMarkerClickListener(markerClickListener);
-        }
-
-        //Gestión de los botones de calcular e iniciar ruta.
-        if (recordingRoute.calcRouteAviable()&&!settingHome) {
-            calcBtn.setVisibility(recordingRoute.getRouteReady() ? View.GONE : View.VISIBLE);
-            initBtn.setVisibility(!recordingRoute.getRouteReady() ? View.GONE : View.VISIBLE);
-
-        } else {
-            calcBtn.setVisibility(View.GONE);
-            initBtn.setVisibility(View.GONE);
-        }
-    }
-
     /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
+     * Display the menu to add a technique to the route.
+     *
+     * This method builds a menu that allows the user to pick a technique to add to the route.
+     * All the options will be displayed and, once one is selected, {@link CrearRuta#showAddTechniqueMenu(TecnicaGrabacion, String)}
+     * will be called. If the menu is cancelled, no changes will be applied.
      */
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-        mMap.getUiSettings().setMapToolbarEnabled(false);
-        mMap.getUiSettings().setZoomControlsEnabled(true);
-        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
-            @Override
-            public View getInfoWindow(Marker marker) {
-                return null;
-            }
-
-            @Override
-            public View getInfoContents(Marker marker) {
-                return buildInfoWindow(marker);
-            }
-        });
-
-        try {
-            mMap.setMyLocationEnabled(true);
-        } catch (SecurityException e) {
-            Toast toast = Toast.makeText(this, "No hay permisos para obtener localización", Toast.LENGTH_SHORT);
-            toast.show();
-        }
-        recordingRoute.updateMap(mMap);
-        initUI();
-    }
-
-
-    public void displayAddMenu() {
+    private void displayAddMenu() {
         ScrollView addMenu = (ScrollView) getLayoutInflater().inflate(R.layout.add_menu, null);
         Button addHome = (Button) addMenu.findViewById(R.id.addHome);
         Button addAcimutal = (Button) addMenu.findViewById(R.id.addAcimutal);
@@ -372,6 +403,13 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
         });
     }
 
+    /**
+     * This method serves to display the individual menu of each technique.
+     *
+     * This method takes a TecnicaGrabacion and a title as parameters, the TecnicaGrabacion
+     * @param newTechnique
+     * @param menuTitle
+     */
     protected void showAddTechniqueMenu(final TecnicaGrabacion newTechnique, String menuTitle){
 
         new AlertDialog.Builder(CrearRuta.this)
@@ -396,6 +434,48 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
         updateUI();
     }
 
+    /**
+     * This method creates a savefile menu
+     *
+     * This menu allows the user to select a name for the file in wich to save the route. if the file already
+     * exists, it will be overwritten. If the menu is cancelled, the menu will simply close and no further action will be taken.
+     */
+    private void showSaveMenu(){
+        LinearLayout saveMenu = (LinearLayout) getLayoutInflater().inflate(R.layout.save_menu, null);
+        final TextView editName = (TextView) saveMenu.findViewById(R.id.editName);
+        editName.setText(recordingRoute.getName());
+        new AlertDialog.Builder(this)
+                .setTitle("Guardar Ruta")
+                .setView(saveMenu)
+                .setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        recordingRoute.setName(editName.getText().toString());
+                        recordingRoute.saveRoute(CrearRuta.this);
+                        dialogInterface.dismiss();
+                    }
+                })
+                .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                })
+                .create()
+                .show();
+    }
+
+
+    /**
+     * This method generates a information window for a target
+     *
+     * Once a target is clicked, if {@link CrearRuta#markerClickListener} is set as the listener, this
+     * method will be called.
+     * It will build a view using the selected target information and return it. If the target is also
+     * a camera, it will append two views to display the camera specific information as well.
+     * @param marker Marker that is tapped
+     * @return View of the information window with this target's values.
+     */
     protected View buildInfoWindow(Marker marker){
         LinearLayout infoWindow = (LinearLayout) getLayoutInflater().inflate(R.layout.info_window_marker, null);
         Target o = (Target) marker.getTag();
@@ -445,29 +525,4 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
 
         return infoWindow;
     }
-    private void showSaveMenu(){
-        LinearLayout saveMenu = (LinearLayout) getLayoutInflater().inflate(R.layout.save_menu, null);
-        final TextView editName = (TextView) saveMenu.findViewById(R.id.editName);
-        editName.setText(recordingRoute.getName());
-        new AlertDialog.Builder(this)
-                .setTitle("Guardar Ruta")
-                .setView(saveMenu)
-                .setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        recordingRoute.setName(editName.getText().toString());
-                        recordingRoute.saveRoute(CrearRuta.this);
-                        dialogInterface.dismiss();
-                    }
-                })
-                .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        dialogInterface.dismiss();
-                    }
-                })
-                .create()
-                .show();
-    }
-
 }

@@ -15,7 +15,11 @@ import dji.sdk.base.BaseProduct;
 import dji.sdk.mission.waypoint.WaypointMissionOperator;
 import dji.sdk.sdkmanager.DJISDKManager;
 
-/*
+/**
+ * This Class handles DJI methods and objects such as {@link dji.sdk.sdkmanager.DJISDKManager} in a
+ * consistent manner that is accessible by all activities across the application, ensuring that the
+ * same aircraft reference is always obtained.
+ *
  * Created by Manuel Gómez Castro on 10/07/17.
  */
 
@@ -32,7 +36,7 @@ public class DJIApplication extends Application {
             mHandler = new Handler(Looper.getMainLooper());
         }
     }
-    //Generamos un SDKManagerCallback para implementar los métodos que actúan en el registro y que gestionan la conexión del producto
+
     private DJISDKManager.SDKManagerCallback mSDKManagerCallback = new DJISDKManager.SDKManagerCallback() {
         @Override
         public void onRegister(DJIError djiError) {
@@ -114,8 +118,14 @@ public class DJIApplication extends Application {
     //MISSION CONTROL
     static private WaypointMissionOperator waypointMissionOperator;
 
+    /**
+     * Generating a {@link WaypointMissionOperator} from the currently instanciated aircraft.
+     *
+     * This mission operator will be used in the IniciarVuelo activity.
+     * @return WaypointMissionOperator that will hold the recording route.
+     */
     public static synchronized WaypointMissionOperator getWaypointMissionOperator() {
-         waypointMissionOperator = DJISDKManager.getInstance().getMissionControl().getWaypointMissionOperator();
+        waypointMissionOperator = DJISDKManager.getInstance().getMissionControl().getWaypointMissionOperator();
         return waypointMissionOperator;
     }
 }
