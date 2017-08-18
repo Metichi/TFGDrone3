@@ -85,14 +85,14 @@ public class RecordingRoute implements Serializable {
      * This method calculates the ammount of waypoints present in the route.
      *
      * This method does not calculate the points before return, so in order to get accurate results,
-     * {@link RecordingRoute#calculateRoute()} should be called beforehand.
+     * {@link RecordingRoute#calculateRoute(double, double, double)} should be called beforehand.
      * @return
      */
     public int getNumberWaypoints(){
         ListIterator<TecnicaGrabacion> iterator = techniques.listIterator();
         int size = 0;
         while (iterator.hasNext()){
-            size += iterator.next().getWaypoints().length;
+            size += iterator.next().getRoutePoints().length;
         }
         return size;
     }
@@ -101,7 +101,7 @@ public class RecordingRoute implements Serializable {
      * This method returns all the waypoints in the route.
      *
      * This method does not calculate the points before return, so in order to get accurate results,
-     * {@link RecordingRoute#calculateRoute()} should be called beforehand.
+     * {@link RecordingRoute#calculateRoute(double, double, double)} should be called beforehand.
      * @return Array of {@link RoutePoint}
      */
     public RoutePoint[] getRoute(){
@@ -110,7 +110,7 @@ public class RecordingRoute implements Serializable {
         cameras = new RoutePoint[getNumberWaypoints()];
         int i = 0;
         while (iterator.hasNext()){
-            for(RoutePoint camera : iterator.next().getWaypoints()){
+            for(RoutePoint camera : iterator.next().getRoutePoints()){
                 cameras[i] = camera;
                 i++;
             }
@@ -165,12 +165,31 @@ public class RecordingRoute implements Serializable {
      * This method goes through every technique and calls for its specific calculateRoute method.
      * If the execution fails, or no waypoints are generated, {@link RecordingRoute#getRouteReady()} is set to false.
      * If the execution succeeds, it is set to true.
-     * @see TecnicaGrabacion#calculateRoute()
+     * @param maxSpeed Maximum speed allowed in the route.
+     * @param minHeight Minimum height allowed in the route.
+     * @param maxHeight Maximum height allowed in the route.
+     * @return Report with stadistics to the route.
+     * @see TecnicaGrabacion#calculateRoute(double, double, double)
      */
-    public void calculateRoute(){
+    public RouteReport calculateRoute(double maxSpeed, double minHeight, double maxHeight){
+        RouteReport r = null;
         if(calcRouteAviable()) {
             for (TecnicaGrabacion t : techniques) {
-                t.calculateRoute();
+                if (r == null){ r = new RouteReport(t.calculateRoute(maxSpeed,minHeight,maxHeight));}
+                else {r.addReport(t.calculateRoute(maxSpeed,minHeight,maxHeight));}
+
+                if(techniques.indexOf(t)>=1){
+                    RoutePoint previous = techniques.get(techniques.indexOf(t)-1)
+                            .getRoutePoints()[techniques.get(techniques.indexOf(t)-1).getRoutePoints().length-1];
+                    RoutePoint next = t.getRoutePoints()[0];
+                    previous.calculateSpeedTowards(next);
+
+                    double speedFactor = previous.fixToMaxSpeed(maxSpeed);
+                    double time = next.getTime()-previous.getTime();
+                    time = time * speedFactor;
+                    t.getTargets()[0].setTime(previous.getTime()+time);
+                    t.calculateRoute(maxSpeed,minHeight,maxHeight);
+                }
             }
 
             if (getNumberWaypoints() > 0) {
@@ -180,6 +199,7 @@ public class RecordingRoute implements Serializable {
                 routeReady = false;
             }
         }
+        return r;
     }
 
     /**
@@ -378,8 +398,8 @@ public class RecordingRoute implements Serializable {
 
     /**
      * Returns wether the route is ready to be executed or not.
-     * It is set to true once {@link RecordingRoute#calculateRoute()} is executed succesfully.
-     * It is set to false once{@link RecordingRoute#calculateRoute()} is not executed succesfully.
+     * It is set to true once {@link RecordingRoute#calculateRoute(double, double, double)} is executed succesfully.
+     * It is set to false once{@link RecordingRoute#calculateRoute(double, double, double)} is not executed succesfully.
      * It is set to false once{@link RecordingRoute#calcRouteAviable()} returns false.
      *
      * @return
@@ -425,4 +445,79 @@ public class RecordingRoute implements Serializable {
         }
     }
     //endregion
+
+    public static class RouteReport{
+        private double minHeight;
+        private double maxHeight;
+        private double minSpeed;
+        private double maxSpeed;
+        private int routePointCount;
+        private int targetCount;
+
+        private boolean minHeightCorrected;
+        private boolean maxHeightCorrected;
+        private boolean maxSpeedCorrected;
+
+        public RouteReport(TecnicaGrabacion.TechniqueReport t){
+            this.minHeight = t.getMinHeight();
+            this.maxHeight = t.getMaxHeight();
+            this.minSpeed = t.getMinSpeed();
+            this.maxSpeed = t.getMaxSpeed();
+            this.routePointCount = t.getRoutePointCount();
+            this.targetCount = t.getTargetCount();
+            this.minHeightCorrected = t.isMinHeightCorrected();
+            this.maxHeightCorrected = t.isMaxHeightCorrected();
+            this.maxSpeedCorrected = t.isMaxSpeedCorrected();
+        }
+
+        public void addReport(TecnicaGrabacion.TechniqueReport t){
+            this.minHeight = Math.min(this.minHeight,t.getMinHeight());
+            this.maxHeight = Math.max(this.maxHeight,t.getMaxHeight());
+            this.minSpeed = Math.min(this.minSpeed,t.getMinSpeed());
+            this.maxSpeed = Math.max(this.maxSpeed,t.getMaxSpeed());
+
+            this.routePointCount += t.getRoutePointCount();
+            this.targetCount += t.getTargetCount();
+
+            this.minHeightCorrected = t.isMinHeightCorrected()||this.minHeightCorrected;
+            this.maxHeightCorrected = t.isMaxHeightCorrected()||this.maxHeightCorrected;
+            this.maxSpeedCorrected = t.isMaxSpeedCorrected()||this.maxSpeedCorrected;
+        }
+
+        public int getTargetCount() {
+            return targetCount;
+        }
+
+        public int getRoutePointCount() {
+            return routePointCount;
+        }
+
+        public double getMaxHeight() {
+            return maxHeight;
+        }
+
+        public double getMinHeight() {
+            return minHeight;
+        }
+
+        public double getMaxSpeed() {
+            return maxSpeed;
+        }
+
+        public double getMinSpeed() {
+            return minSpeed;
+        }
+
+        public boolean isMinHeightCorrected() {
+            return minHeightCorrected;
+        }
+
+        public boolean isMaxHeightCorrected() {
+            return maxHeightCorrected;
+        }
+
+        public boolean isMaxSpeedCorrected() {
+            return maxSpeedCorrected;
+        }
+    }
 }

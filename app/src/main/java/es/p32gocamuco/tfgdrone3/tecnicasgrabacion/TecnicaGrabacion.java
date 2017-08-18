@@ -1,6 +1,5 @@
 package es.p32gocamuco.tfgdrone3.tecnicasgrabacion;
 
-import android.app.Activity;
 import android.graphics.Color;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -37,7 +36,7 @@ public abstract class TecnicaGrabacion implements Serializable {
     public TecnicaGrabacion(){
         super();
     }
-    abstract public void calculateRoute();
+    abstract public TechniqueReport calculateRoute(double maxSpeed,double minHeight,double maxHeight);
 
     public void addTarget(Target puntoActual) {
         puntoActual.setCurrentTechnique(this);
@@ -67,7 +66,7 @@ public abstract class TecnicaGrabacion implements Serializable {
         return targets;
     }
 
-    public RoutePoint[] getWaypoints() {
+    public RoutePoint[] getRoutePoints() {
         if (routePoints == null){
             return new RoutePoint[0];
         } else {
@@ -216,8 +215,91 @@ public abstract class TecnicaGrabacion implements Serializable {
             t.initMarkerOptions();
             polylineOptions.add(t.getLatLng());
         }
-        for (RoutePoint r : getWaypoints()){
+        for (RoutePoint r : getRoutePoints()){
             r.initMarkerOptions();
+        }
+    }
+
+    /**
+     * Class dedicated to hold the information of a calculated technique.
+     *
+     * This class will show stadistics of the technique such as:
+     *     -Time spent
+     *     -Minimum and maximum height.
+     *     -Minimum and maximum speed.
+     *     -Distance travelled
+     *     -Maximum distance from origin if set.
+     *     -Fixes applied to user's original specifications.
+     *     -Warnings.
+     */
+    public static class TechniqueReport{
+        private double minHeight;
+        private double maxHeight;
+        private double minSpeed;
+        private double maxSpeed;
+        private int routePointCount;
+        private int targetCount;
+
+        private boolean minHeightCorrected;
+        private boolean maxHeightCorrected;
+        private boolean maxSpeedCorrected;
+
+        public TechniqueReport(TecnicaGrabacion t,boolean minHeightCorrected,boolean maxHeightCorrected,boolean maxSpeedCorrected){
+            this.minHeightCorrected = minHeightCorrected;
+            this.maxHeightCorrected = maxHeightCorrected;
+            this.maxSpeedCorrected = maxSpeedCorrected;
+
+            this.targetCount = t.getTargets().length;
+            RoutePoint[] routePoints = t.getRoutePoints();
+
+            this.routePointCount = routePoints.length;
+            this.minHeight = routePoints[0].getHeight();
+            this.maxHeight = routePoints[0].getHeight();
+            this.minSpeed = routePoints[0].getSpeed().getModulo_v();
+            this.maxSpeed = routePoints[0].getSpeed().getModulo_v();
+            for(RoutePoint r : routePoints){
+                this.minHeight = Math.min(this.minHeight,r.getHeight());
+                this.maxHeight = Math.max(this.maxHeight,r.getHeight());
+
+                this.minSpeed = Math.min(this.minSpeed,r.getSpeed().getModulo_v());
+                this.maxSpeed = Math.min(this.maxSpeed,r.getSpeed().getModulo_v());
+            }
+        }
+
+        public int getTargetCount() {
+            return targetCount;
+        }
+
+        public int getRoutePointCount() {
+            return routePointCount;
+        }
+
+        public double getMaxHeight() {
+            return maxHeight;
+        }
+
+        public double getMinHeight() {
+            return minHeight;
+        }
+
+        public double getMaxSpeed() {
+            return maxSpeed;
+        }
+
+        public double getMinSpeed() {
+            return minSpeed;
+        }
+
+        public boolean isMinHeightCorrected() {
+            return minHeightCorrected;
+        }
+
+        public boolean isMaxHeightCorrected() {
+            return maxHeightCorrected;
+        }
+
+        public boolean isMaxSpeedCorrected() {
+            return maxSpeedCorrected;
         }
     }
 }

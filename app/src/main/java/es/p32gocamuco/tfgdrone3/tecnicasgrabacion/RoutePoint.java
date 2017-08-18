@@ -130,7 +130,7 @@ public class RoutePoint extends Target implements Serializable{
         return roll;
     }
 
-    public void calculaVelocidad(Target o){
+    public void calculateSpeedTowards(Target o){
         /* Calculamos la speed que haría falta para llegar hasta un objetivo (o camara) desde nuestro tiempo
             hasta el tiempo que pide el objetivo
          */
@@ -151,7 +151,7 @@ public class RoutePoint extends Target implements Serializable{
         y devuelve el factor de escala correspondiente.
         */
         if(maxSpeed >= speed.getModulo_v()){
-            return 0;
+            return 1.0;
         } else {
             double anguloAscenso = (speed.getVelocidadNESO() == 0) ? 90 : toDegrees(atan(speed.getVertical()/ speed.getVelocidadNESO()));
             double velocidadPrevia = speed.getModulo_v();

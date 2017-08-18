@@ -81,7 +81,13 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
         calcBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                recordingRoute.calculateRoute();
+                double maxSpeed = Double.parseDouble(PreferenceManager.getDefaultSharedPreferences(CrearRuta.this)
+                        .getString("max_speed_setting_key","10.0"));
+                double minHeight = Double.parseDouble(PreferenceManager.getDefaultSharedPreferences(CrearRuta.this)
+                        .getString("min_height_setting_key","10.0"));
+                double maxHeight = Double.parseDouble(PreferenceManager.getDefaultSharedPreferences(CrearRuta.this)
+                        .getString("max_height_setting_key","100.0"));
+                recordingRoute.calculateRoute(maxSpeed,minHeight,maxHeight);
                 if (recordingRoute.getRouteReady()) {
                     RoutePoint[] route = recordingRoute.getRoute();
                     for (RoutePoint waypoint : route) {

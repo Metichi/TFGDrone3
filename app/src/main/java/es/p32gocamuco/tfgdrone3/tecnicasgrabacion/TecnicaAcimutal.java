@@ -23,6 +23,7 @@ public class TecnicaAcimutal extends   TecnicaGrabacion{
     private double alturaSobreObjetivo;
     private double orientacionNESO; //0 si el marco superior de la imagen coincide con el norte
     private boolean orientacionSegunObjetivo; //La cámara se ajusta para que el límite superior apunte al siguiente objetivo. No se tiene en cuenta si sólo hay un punto.
+    private TechniqueReport report;
 
 
     public double getAlturaSobreObjetivo() {
@@ -40,7 +41,11 @@ public class TecnicaAcimutal extends   TecnicaGrabacion{
         orientacionNESO = 0;
     }
     @Override
-    public void calculateRoute() {
+    public TechniqueReport calculateRoute(double maxSpeed,double minHeight, double maxHeight) {
+        boolean minHeightChanged = false;
+        boolean maxHeightChanged = false;
+        boolean maxSpeedChanged = false;
+
         if (routePoints.size()>0){this.deleteWaypoints();}
         ListIterator<Target> objectiveIterator = targets.listIterator();
         ListIterator<RoutePoint> cameraIterator; //No se define el iterador todavía porque aún no se ha calculado la posición de las cámaras.
@@ -56,6 +61,14 @@ public class TecnicaAcimutal extends   TecnicaGrabacion{
 
             //Calculo de la posición de la cámara.
             currentCamera.setHeight(currentObjective.getHeight()+alturaSobreObjetivo);
+            if (currentCamera.getHeight() > maxHeight){
+                currentCamera.setHeight(maxHeight);
+                maxHeightChanged = true;
+            }
+            if (currentCamera.getHeight()<minHeight){
+                currentCamera.setHeight(minHeight);
+                minHeightChanged = true;
+            }
 
 
             //Calculo de el ángulo de la camara
@@ -74,17 +87,21 @@ public class TecnicaAcimutal extends   TecnicaGrabacion{
             //
 
             routePoints.add(currentCamera);
-        }
-
-        //Iniciamos el iterador en la posición 1 en lugar de 0 para asegurarnos de que siempre hay un previous.
-        if (routePoints.size() > 0) {
-            cameraIterator = routePoints.listIterator(1);
-            while (cameraIterator.hasNext()) {
-                currentCamera = routePoints.get(cameraIterator.previousIndex());
-                nextCamera = cameraIterator.next();
-                currentCamera.calculaVelocidad(nextCamera);
+            if (routePoints.size()>1){
+                RoutePoint previousCamera = routePoints.get(routePoints.indexOf(currentCamera)-1);
+                previousCamera.calculateSpeedTowards(currentCamera);
+                double speedFactor = previousCamera.fixToMaxSpeed(maxSpeed);
+                if(speedFactor != 1.0){
+                    maxSpeedChanged = true;
+                    double time = currentCamera.getTime()-previousCamera.getTime();
+                    time = time * speedFactor;
+                    currentCamera.setTime(previousCamera.getTime()+time);
+                    targets.get(routePoints.indexOf(currentCamera)).setTime(currentCamera.getTime());
+                }
             }
         }
+        report = new TechniqueReport(this,minHeightChanged,maxHeightChanged,maxSpeedChanged);
+        return report;
     }
 
     public void setAlturaSobreObjetivo(double alturaSobreObjetivo) {
@@ -170,4 +187,5 @@ public class TecnicaAcimutal extends   TecnicaGrabacion{
 
         return menu;
     }
+
 }

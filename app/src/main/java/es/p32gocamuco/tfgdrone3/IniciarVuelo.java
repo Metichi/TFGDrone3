@@ -8,6 +8,7 @@ import android.graphics.SurfaceTexture;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -78,7 +79,13 @@ public class IniciarVuelo extends AppCompatActivity implements OnMapReadyCallbac
         initUI();
         recordingRoute = (RecordingRoute) getIntent().getSerializableExtra("RECORDING_ROUTE");
         recordingRoute.initMapOptions();
-        recordingRoute.calculateRoute();
+        double maxSpeed = Double.parseDouble(PreferenceManager.getDefaultSharedPreferences(this)
+                .getString("max_speed_setting_key","10.0"));
+        double minHeight = Double.parseDouble(PreferenceManager.getDefaultSharedPreferences(this)
+                .getString("min_height_setting_key","10.0"));
+        double maxHeight = Double.parseDouble(PreferenceManager.getDefaultSharedPreferences(this)
+                .getString("max_height_setting_key","100.0"));
+        recordingRoute.calculateRoute(maxSpeed,minHeight,maxHeight);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.mapView);

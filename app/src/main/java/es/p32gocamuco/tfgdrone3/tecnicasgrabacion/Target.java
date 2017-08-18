@@ -52,8 +52,8 @@ public class Target implements Serializable {
         accion = Acciones.NADA;
         currentTechnique = new TecnicaGrabacion(false) {
             @Override
-            public void calculateRoute() {
-
+            public TechniqueReport calculateRoute(double m, double n, double x) {
+                return null;
             }
 
             @Override
