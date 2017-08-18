@@ -185,10 +185,23 @@ public class RecordingRoute implements Serializable {
                     previous.calculateSpeedTowards(next);
 
                     double speedFactor = previous.fixToMaxSpeed(maxSpeed);
-                    double time = next.getTime()-previous.getTime();
-                    time = time * speedFactor;
-                    t.getTargets()[0].setTime(previous.getTime()+time);
-                    t.calculateRoute(maxSpeed,minHeight,maxHeight);
+                    if (speedFactor != 1) {
+                        double time = next.getTime() - previous.getTime();
+                        double newTime = time * speedFactor;
+                        double timeDiff = newTime - time;
+                        boolean found = false;
+                        for (Target target : getAllTargets()){
+                            if(!found){
+                                if (target == t.getTargets()[0]){
+                                    found = true;
+                                    target.setTime(target.getTime()+timeDiff);
+                                }
+                            } else {
+                                target.setTime(target.getTime()+timeDiff);
+                            }
+                        }
+                        t.calculateRoute(maxSpeed, minHeight, maxHeight);
+                    }
                 }
             }
 
