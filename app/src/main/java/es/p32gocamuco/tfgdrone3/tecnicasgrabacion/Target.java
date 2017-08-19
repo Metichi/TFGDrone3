@@ -131,12 +131,6 @@ public class Target implements Serializable {
         return markerOptions;
     }
 
-    /*public void setMarker(Marker marker) {
-        if (this.marker != null) {this.marker.remove();} //Si estamos cambiando el marcador de este objetivo, debemos borrar el anterior del mapa.
-        this.marker = marker;
-        this.marker.setTag(this);
-    }*/
-
     public void placeAtMap(GoogleMap gMap){
         if (this.marker != null) {this.marker.remove();} //Si estamos cambiando el marcador de este objetivo, debemos borrar el anterior del mapa.
         this.marker = gMap.addMarker(this.markerOptions);

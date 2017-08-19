@@ -84,7 +84,6 @@ public class TecnicaAcimutal extends   TecnicaGrabacion{
                     currentCamera.setYaw(results[1]);
                 }
             }
-            //
 
             routePoints.add(currentCamera);
             if (routePoints.size()>1){

@@ -5,4 +5,5 @@
     <color name="colorAccent">#FF4081</color>
     <color name="recordingRouteLine">#88FF2020</color>
     <color name="circleColor">#FFEE8F00</color>
+    <color name="elementChanged">#FFEE0000</color>
 </resources>

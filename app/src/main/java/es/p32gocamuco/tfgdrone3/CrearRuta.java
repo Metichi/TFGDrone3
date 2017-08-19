@@ -7,11 +7,14 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.GridLayoutManager;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.GridLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Spinner;
@@ -87,7 +90,48 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
                         .getString("min_height_setting_key","10.0"));
                 double maxHeight = Double.parseDouble(PreferenceManager.getDefaultSharedPreferences(CrearRuta.this)
                         .getString("max_height_setting_key","100.0"));
-                recordingRoute.calculateRoute(maxSpeed,minHeight,maxHeight);
+
+                RecordingRoute.CalculationCompleteListener listener = new RecordingRoute.CalculationCompleteListener() {
+                    @Override
+                    public void onCalculationComplete(RecordingRoute.RouteReport report) {
+                        GridLayout reportWindow =(GridLayout) LayoutInflater.from(CrearRuta.this).inflate(R.layout.info_route_report,null);
+                        TextView minHeight,maxHeight,minSpeed,maxSpeed,targetCount,routePointCount,routeAdjustedWarning;
+                        minHeight = (TextView) reportWindow.findViewById(R.id.minHeight);
+                        maxHeight = (TextView) reportWindow.findViewById(R.id.maxHeight);
+                        minSpeed = (TextView) reportWindow.findViewById(R.id.minSpeed);
+                        maxSpeed = (TextView) reportWindow.findViewById(R.id.maxSpeed);
+                        targetCount = (TextView) reportWindow.findViewById(R.id.targetCount);
+                        routePointCount = (TextView) reportWindow.findViewById(R.id.routePointCount);
+                        routeAdjustedWarning = (TextView) reportWindow.findViewById(R.id.routeAdjustedWarning);
+
+                        if(report.isMaxHeightCorrected()||report.isMaxSpeedCorrected()||report.isMinHeightCorrected()){
+                            routeAdjustedWarning.setVisibility(View.VISIBLE);
+                        }
+
+                        minHeight.setText(String.valueOf(report.getMinHeight()));
+                        maxHeight.setText(String.valueOf(report.getMaxHeight()));
+                        minSpeed.setText(String.valueOf(report.getMinSpeed()));
+                        maxSpeed.setText(String.valueOf(report.getMaxSpeed()));
+                        targetCount.setText(String.valueOf(report.getTargetCount()));
+                        routePointCount.setText(String.valueOf(report.getRoutePointCount()));
+
+                        if(report.isMaxSpeedCorrected()){maxSpeed.setTextColor(getResources().getColor(R.color.elementChanged));}
+                        if(report.isMaxHeightCorrected()){maxHeight.setTextColor(getResources().getColor(R.color.elementChanged));}
+                        if(report.isMinHeightCorrected()){minHeight.setTextColor(getResources().getColor(R.color.elementChanged));}
+                        new AlertDialog.Builder(CrearRuta.this)
+                                .setView(reportWindow)
+                                .setTitle("Información de ruta")
+                                .setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        dialogInterface.dismiss();
+                                    }
+                                })
+                                .create()
+                                .show();
+                    }
+                };
+                recordingRoute.calculateRoute(maxSpeed,minHeight,maxHeight,listener);
                 if (recordingRoute.getRouteReady()) {
                     RoutePoint[] route = recordingRoute.getRoute();
                     for (RoutePoint waypoint : route) {
@@ -475,8 +519,7 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
     /**
      * This method generates a information window for a target
      *
-     * Once a target is clicked, if {@link CrearRuta#markerClickListener} is set as the listener, this
-     * method will be called.
+     * Once a target is clicked, if clickable, this method will be called.
      * It will build a view using the selected target information and return it. If the target is also
      * a camera, it will append two views to display the camera specific information as well.
      * @param marker Marker that is tapped

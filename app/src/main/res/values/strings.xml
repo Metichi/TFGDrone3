@@ -14,6 +14,15 @@
     <string name="title_activity_cargar_ruta">CargarRuta</string>
     <string name="title_activity_settings">Settings</string>
 
+    <!-- Route Report-->
+    <string name="targetCountLabel">Cantidad de Objetivos</string>
+    <string name="routePointCountLabel">Cantidad de puntos de ruta</string>
+    <string name="minSpeedLabel">Velocidad mínima: </string>
+    <string name="maxSpeedLabel">Velocidad máxima</string>
+    <string name="minHeightLabel">Altura mínima</string>
+    <string name="maxHeightLabel">Altura máxima</string>
+    <string name="routeAdjustedWarning">Ruta ajustada a las especificaciones en ajustes</string>
+
     <!-- Strings related to Settings -->
     <string name="route_settings">Ajustes de ruta</string>
     <string name="end_route_acction">Accion tras acabar la ruta</string>

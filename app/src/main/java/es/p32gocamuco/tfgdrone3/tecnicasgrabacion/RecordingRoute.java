@@ -34,6 +34,7 @@ public class RecordingRoute implements Serializable {
     private String name;
     private TecnicaGrabacion currentTechnique;
     private boolean routeReady = false;
+    private RouteReport report;
 
     private Home home;
 
@@ -74,6 +75,27 @@ public class RecordingRoute implements Serializable {
         techniques.remove(t);
     }
 
+    /**
+     * Adds time to a specific target and all targets afterwards.
+     *
+     * This method checks wether a target is in the route's target list and adds a time to it. Then
+     * it continues following the list and adding the increased time to all the following targets to
+     * ensure that they are all still lineal and they maintain the time dependencies to one another.
+     *
+     * This method does not replace the absolute time of the target but adds a specific ammount to the already
+     * stored one.
+     * @param t Target to wich to add time.
+     * @param time Time to add.
+     */
+    public void addTimeTo(Target t, double time){
+        boolean found = false;
+        for (Target target : getAllTargets()){
+            if (t == target) {found = true;}
+            if(found){
+                target.setTime(target.getTime()+time);
+            }
+        }
+    }
 
     public boolean isCurrentlyRecording(){
         Target lastTarget = getLastTarget();
@@ -163,6 +185,10 @@ public class RecordingRoute implements Serializable {
      * Calculates the recording route.
      *
      * This method goes through every technique and calls for its specific calculateRoute method.
+     * This method also calculates the speed of the last RoutePoint of each technique in relation to the first
+     * RoutePoint of the next technique. If the speed is too great, the speed will be adjusted and all the following targets will
+     * be adjusted accordingly.
+     * It also checks wether the final time of a target changes and applies that change to the rest of the route.
      * If the execution fails, or no waypoints are generated, {@link RecordingRoute#getRouteReady()} is set to false.
      * If the execution succeeds, it is set to true.
      * @param maxSpeed Maximum speed allowed in the route.
@@ -174,9 +200,18 @@ public class RecordingRoute implements Serializable {
     public RouteReport calculateRoute(double maxSpeed, double minHeight, double maxHeight){
         RouteReport r = null;
         if(calcRouteAviable()) {
+            double timeChange = 0;
             for (TecnicaGrabacion t : techniques) {
-                if (r == null){ r = new RouteReport(t.calculateRoute(maxSpeed,minHeight,maxHeight));}
-                else {r.addReport(t.calculateRoute(maxSpeed,minHeight,maxHeight));}
+                addTimeTo(t.getTargets()[0],timeChange);
+                double innitialTime = t.getLastTarget().getTime();
+                if (r == null){
+                    TecnicaGrabacion.TechniqueReport techniqueReport = t.calculateRoute(maxSpeed,minHeight,maxHeight);
+                    r = new RouteReport(techniqueReport);}
+                else {
+                    TecnicaGrabacion.TechniqueReport techniqueReport = t.calculateRoute(maxSpeed,minHeight,maxHeight);
+                    r.addReport(techniqueReport);
+                }
+                timeChange = t.getLastTarget().getTime()-innitialTime;
 
                 if(techniques.indexOf(t)>=1){
                     RoutePoint previous = techniques.get(techniques.indexOf(t)-1)
@@ -189,17 +224,7 @@ public class RecordingRoute implements Serializable {
                         double time = next.getTime() - previous.getTime();
                         double newTime = time * speedFactor;
                         double timeDiff = newTime - time;
-                        boolean found = false;
-                        for (Target target : getAllTargets()){
-                            if(!found){
-                                if (target == t.getTargets()[0]){
-                                    found = true;
-                                    target.setTime(target.getTime()+timeDiff);
-                                }
-                            } else {
-                                target.setTime(target.getTime()+timeDiff);
-                            }
-                        }
+                        addTimeTo(next,timeDiff);
                         t.calculateRoute(maxSpeed, minHeight, maxHeight);
                     }
                 }
@@ -212,9 +237,21 @@ public class RecordingRoute implements Serializable {
                 routeReady = false;
             }
         }
+        report = r;
         return r;
     }
 
+    /**
+     * This method acts exactly as {@link RecordingRoute#calculateRoute(double, double, double)} but,
+     * after executing and before returning, calls the {@link CalculationCompleteListener#onCalculationComplete(RouteReport)} method in the
+     * specified listener.
+     * @param listener Implementation of the {@link CalculationCompleteListener} interface.
+     */
+    public RouteReport calculateRoute(double maxSpeed, double minHeight, double maxHeight, CalculationCompleteListener listener){
+        RouteReport r = calculateRoute(maxSpeed,minHeight,maxHeight);
+        listener.onCalculationComplete(r);
+        return r;
+    }
     /**
      * Tells the user if it is possible to calculate the route.
      *
@@ -409,6 +446,10 @@ public class RecordingRoute implements Serializable {
         }
     }
 
+    public RouteReport getReport() {
+        return report;
+    }
+
     /**
      * Returns wether the route is ready to be executed or not.
      * It is set to true once {@link RecordingRoute#calculateRoute(double, double, double)} is executed succesfully.
@@ -532,5 +573,13 @@ public class RecordingRoute implements Serializable {
         public boolean isMaxSpeedCorrected() {
             return maxSpeedCorrected;
         }
+    }
+
+    /**
+     * This interface is used by the {@link RecordingRoute#calculateRoute(double, double, double, CalculationCompleteListener)} method
+     * to allow the implementation of an action inmediatly upon route calculation.
+     */
+    public interface CalculationCompleteListener{
+        void onCalculationComplete(RouteReport report);
     }
 }

@@ -262,7 +262,7 @@ public abstract class TecnicaGrabacion implements Serializable {
                 this.maxHeight = Math.max(this.maxHeight,r.getHeight());
 
                 this.minSpeed = Math.min(this.minSpeed,r.getSpeed().getModulo_v());
-                this.maxSpeed = Math.min(this.maxSpeed,r.getSpeed().getModulo_v());
+                this.maxSpeed = Math.max(this.maxSpeed,r.getSpeed().getModulo_v());
             }
         }
 
