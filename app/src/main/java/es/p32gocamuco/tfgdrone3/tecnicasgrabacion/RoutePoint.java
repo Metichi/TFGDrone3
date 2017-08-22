@@ -179,4 +179,35 @@ public class RoutePoint extends Target implements Serializable{
         markerOptions.flat(true);
         markerOptions.rotation((float) yaw);
     }
+
+    /**
+     * This method calculates the minimum ammount of time required to go from two route points.
+     *
+     * This method keeps in check the flight speed of the aircraft as well as its rotation speed, so
+     * it calculates the time it would take to cover the distance between the two routepoints at maximum speed,
+     * the time it would take to rotate around its yaw the specified ammount and the time it would take
+     * to change its pitch and return the greater value.
+     *
+     * @param a Original RoutePoint
+     * @param b Destination RoutePoint
+     * @param maxLinearSpeed Maximum speed at wich the aircraft is allowed to fly.
+     * @param maxYawSpeed Maximum speed at wich the aircraft is allowed to turn on its yaw.
+     * @param maxPitchSpeed Maximum speed at wich the aircraft is allowed to turn on its pitch.
+     * @return Greater ammount of time between the linear displacement time and the two rotation movements.
+     */
+    public static double minTimeBetween(RoutePoint a, RoutePoint b, double maxLinearSpeed,double maxYawSpeed,double maxPitchSpeed){
+        float[] result = new float[1];
+        Location.distanceBetween(a.getLatitude(),a.getLongitude(),b.getLatitude(),b.getLongitude(),result);
+        double linearDistance = Math.sqrt(Math.pow(result[0],2)+Math.pow((a.getHeight()-b.getHeight()),2));
+        double linearTime = linearDistance/maxLinearSpeed;
+
+        double yawDistance = a.getYaw()-b.getYaw();
+        double yawTime = Math.abs(yawDistance/maxYawSpeed);
+
+        double pitchDistance = a.getPitch() - b.getPitch();
+        double pitchTime = Math.abs(pitchDistance/maxPitchSpeed);
+
+        double max = Math.max(linearTime,yawTime);
+        return Math.max(max,pitchTime);
+    }
 }

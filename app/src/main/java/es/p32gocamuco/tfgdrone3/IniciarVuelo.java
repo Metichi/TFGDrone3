@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import dji.common.error.DJIError;
+import dji.common.flightcontroller.ConnectionFailSafeBehavior;
 import dji.common.flightcontroller.FlightControllerState;
 import dji.common.mission.waypoint.Waypoint;
 import dji.common.mission.waypoint.WaypointAction;
@@ -417,15 +418,50 @@ public class IniciarVuelo extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private WaypointMission buildWaypointMission(List<Waypoint> waypointList){
+        float maxSpeed = Float.parseFloat(PreferenceManager.getDefaultSharedPreferences(this).getString("max_speed_setting_key","10"));
+        int endRouteAction = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(this).getString("end_route_action_key","0"));
+        WaypointMissionFinishedAction finishedAction;
+        switch (endRouteAction){
+            case 0:
+                finishedAction = WaypointMissionFinishedAction.NO_ACTION;
+                break;
+            case 1:
+                finishedAction = WaypointMissionFinishedAction.GO_HOME;
+                break;
+            case 2:
+                finishedAction = WaypointMissionFinishedAction.AUTO_LAND;
+                break;
+            case 3:
+                finishedAction = WaypointMissionFinishedAction.GO_FIRST_WAYPOINT;
+                break;
+            default:
+                finishedAction = WaypointMissionFinishedAction.GO_HOME;
+        }
         //Options for the waypoint mission
         WaypointMission.Builder waypointMissionBuilder = new WaypointMission.Builder()
-                .finishedAction(WaypointMissionFinishedAction.GO_HOME) //TODO: Get this from settings
+                .finishedAction(finishedAction)
                 .headingMode(WaypointMissionHeadingMode.USING_WAYPOINT_HEADING)
-                .maxFlightSpeed(12f) //TODO: Get this from settings
+                .maxFlightSpeed(maxSpeed)
                 .flightPathMode(WaypointMissionFlightPathMode.NORMAL)
-                .setExitMissionOnRCSignalLostEnabled(true) //TODO: Get this from settings
+                .setExitMissionOnRCSignalLostEnabled(true)
                 .setGimbalPitchRotationEnabled(true)//This has to be true in order for each individual waypoint to be able to set its pitch.
                 .waypointList(waypointList);
+
+        //Options for general behavior of the drone
+        int emergencySetting = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(this).getString("emergency_setting_key","0"));
+        ConnectionFailSafeBehavior connectionFailSafeBehavior;
+        switch (emergencySetting){
+            case 0:
+                connectionFailSafeBehavior = ConnectionFailSafeBehavior.GO_HOME;
+                break;
+            case 1:
+                connectionFailSafeBehavior = ConnectionFailSafeBehavior.LANDING;
+                break;
+            default:
+                connectionFailSafeBehavior = ConnectionFailSafeBehavior.GO_HOME;
+        }
+        ((Aircraft)DJIApplication.getProductInstance()).getFlightController().setConnectionFailSafeBehavior(connectionFailSafeBehavior,null);
+
 
         return waypointMissionBuilder.build();
 
@@ -433,6 +469,7 @@ public class IniciarVuelo extends AppCompatActivity implements OnMapReadyCallbac
 
     private void uploadMissionToAircraft(){
         final WaypointMissionOperator waypointMissionOperator = DJIApplication.getWaypointMissionOperator();
+
         waypointMissionOperator.uploadMission(new CommonCallbacks.CompletionCallback() {
             @Override
             public void onResult(DJIError djiError) {
@@ -446,8 +483,6 @@ public class IniciarVuelo extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
         });
-
-
     }
     private void startMission(){
         DJIApplication.getWaypointMissionOperator().startMission(new CommonCallbacks.CompletionCallback() {

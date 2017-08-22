@@ -192,12 +192,14 @@ public class RecordingRoute implements Serializable {
      * If the execution fails, or no waypoints are generated, {@link RecordingRoute#getRouteReady()} is set to false.
      * If the execution succeeds, it is set to true.
      * @param maxSpeed Maximum speed allowed in the route.
+     * @param maxYawSpeed Maximum turning speed allowed for the drone along its vertical axis.
+     * @param maxPitchSpeed Maximum turning speed allowed for the gimbal on the pitch.
      * @param minHeight Minimum height allowed in the route.
      * @param maxHeight Maximum height allowed in the route.
      * @return Report with stadistics to the route.
      * @see TecnicaGrabacion#calculateRoute(double, double, double)
      */
-    public RouteReport calculateRoute(double maxSpeed, double minHeight, double maxHeight){
+    public RouteReport calculateRoute(double maxSpeed, double maxYawSpeed, double maxPitchSpeed, double minHeight, double maxHeight){
         RouteReport r = null;
         if(calcRouteAviable()) {
             double timeChange = 0;
@@ -205,10 +207,10 @@ public class RecordingRoute implements Serializable {
                 addTimeTo(t.getTargets()[0],timeChange);
                 double innitialTime = t.getLastTarget().getTime();
                 if (r == null){
-                    TecnicaGrabacion.TechniqueReport techniqueReport = t.calculateRoute(maxSpeed,minHeight,maxHeight);
+                    TecnicaGrabacion.TechniqueReport techniqueReport = t.calculateRoute(maxSpeed, maxYawSpeed, maxPitchSpeed ,minHeight,maxHeight);
                     r = new RouteReport(techniqueReport);}
                 else {
-                    TecnicaGrabacion.TechniqueReport techniqueReport = t.calculateRoute(maxSpeed,minHeight,maxHeight);
+                    TecnicaGrabacion.TechniqueReport techniqueReport = t.calculateRoute(maxSpeed, maxYawSpeed, maxPitchSpeed ,minHeight,maxHeight);
                     r.addReport(techniqueReport);
                 }
                 timeChange = t.getLastTarget().getTime()-innitialTime;
@@ -217,8 +219,17 @@ public class RecordingRoute implements Serializable {
                     RoutePoint previous = techniques.get(techniques.indexOf(t)-1)
                             .getRoutePoints()[techniques.get(techniques.indexOf(t)-1).getRoutePoints().length-1];
                     RoutePoint next = t.getRoutePoints()[0];
+
+                    double minTimeElapsed = RoutePoint.minTimeBetween(previous,next,maxSpeed,maxYawSpeed,maxPitchSpeed);
+                    double timeElapsed = next.getTime()-previous.getTime();
+
+                    if (timeElapsed < minTimeElapsed){
+                        addTimeTo(next,timeElapsed-minTimeElapsed);
+                    }
+
                     previous.calculateSpeedTowards(next);
 
+                    /**
                     double speedFactor = previous.fixToMaxSpeed(maxSpeed);
                     if (speedFactor != 1) {
                         double time = next.getTime() - previous.getTime();
@@ -227,6 +238,7 @@ public class RecordingRoute implements Serializable {
                         addTimeTo(next,timeDiff);
                         t.calculateRoute(maxSpeed, minHeight, maxHeight);
                     }
+                     **/
                 }
             }
 
@@ -242,13 +254,13 @@ public class RecordingRoute implements Serializable {
     }
 
     /**
-     * This method acts exactly as {@link RecordingRoute#calculateRoute(double, double, double)} but,
+     * This method acts exactly as {@link RecordingRoute#calculateRoute(double,double,double, double, double)} but,
      * after executing and before returning, calls the {@link CalculationCompleteListener#onCalculationComplete(RouteReport)} method in the
      * specified listener.
      * @param listener Implementation of the {@link CalculationCompleteListener} interface.
      */
-    public RouteReport calculateRoute(double maxSpeed, double minHeight, double maxHeight, CalculationCompleteListener listener){
-        RouteReport r = calculateRoute(maxSpeed,minHeight,maxHeight);
+    public RouteReport calculateRoute(double maxSpeed, double maxYawSpeed, double maxPitchSpeed, double minHeight, double maxHeight, CalculationCompleteListener listener){
+        RouteReport r = calculateRoute(maxSpeed,maxYawSpeed,maxPitchSpeed,minHeight,maxHeight);
         listener.onCalculationComplete(r);
         return r;
     }
