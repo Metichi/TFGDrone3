@@ -36,7 +36,7 @@ public abstract class TecnicaGrabacion implements Serializable {
     public TecnicaGrabacion(){
         super();
     }
-    abstract public TechniqueReport calculateRoute(double maxSpeed,double minHeight,double maxHeight);
+    abstract public TechniqueReport calculateRoute(double maxSpeed,double maxYawSpeed,double maxPitchSpeed,double minHeight,double maxHeight);
 
     public void addTarget(Target puntoActual) {
         puntoActual.setCurrentTechnique(this);

@@ -86,7 +86,11 @@ public class IniciarVuelo extends AppCompatActivity implements OnMapReadyCallbac
                 .getString("min_height_setting_key","10.0"));
         double maxHeight = Double.parseDouble(PreferenceManager.getDefaultSharedPreferences(this)
                 .getString("max_height_setting_key","100.0"));
-        recordingRoute.calculateRoute(maxSpeed,minHeight,maxHeight);
+        double maxYawSpeed = Double.parseDouble(PreferenceManager.getDefaultSharedPreferences(this)
+                .getString("yaw_speed_setting_key","10.0"));
+        double maxPitchSpeed = Double.parseDouble(PreferenceManager.getDefaultSharedPreferences(this)
+                .getString("pitch_speed_setting_key","10.0"));
+        recordingRoute.calculateRoute(maxSpeed,maxYawSpeed,maxPitchSpeed,minHeight,maxHeight);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.mapView);

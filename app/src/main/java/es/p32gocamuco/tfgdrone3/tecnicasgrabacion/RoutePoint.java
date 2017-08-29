@@ -19,7 +19,11 @@ import static java.lang.Math.sqrt;
 import static java.lang.Math.toDegrees;
 import static java.lang.Math.toRadians;
 
-/*
+/**
+ * This class represents a point in the recording route containing not only the position information but the camera orientation and speed.
+ *
+ *  This class extends {@link Target} and so shares all of its methods, as well as having fields for speed, pitch, yaw, roll and distance.
+ *
  * Created by Manuel Gómez Castro on 1/07/17.
  */
 
@@ -72,16 +76,20 @@ public class RoutePoint extends Target implements Serializable{
     }
 
 
-    public void setDistanciaFocal(double d){
+    public void setFocusDistance(double d){
         distanciaFocal= d;
     }
 
-    public void enfocaOjbetivo(Target o){
+    /**
+     * This method adjusts the orientation settings to point towards a target
+     *
+     * When called, this method will calculate the relative orientation of the target from the point
+     * of view of the RoutePoint and adjusts the pitch yaw and focal distance of the RoutePoint.
+     * @param o Target to focus
+     */
+    public void focusTarget(Target o){
         float[] resultado = new float[2];
         double incrementoAltura = max( this.getHeight()-o.getHeight(), 0); //El drone no puede apuntar hacia arriba, pero si se le pasa un argumento que le obligara hacer eso, irá lo más cerca posible.
-
-
-
             Location.distanceBetween(this.getLatitude(), this.getLongitude(), o.getLatitude(), o.getLongitude(), resultado);
             //El primer elemento del vector resultado es la distancia más corta sobre la superficie de la tierra en metros
             //Dado que esto no tiene en cuenta las alturas, aproximamos la distancia como una recta y utilizamos pitagoras.
@@ -100,7 +108,6 @@ public class RoutePoint extends Target implements Serializable{
             } catch (ArithmeticException e){
                 pitch = -90;
             }
-
             markerOptions.rotation((float) this.yaw);
     }
 
@@ -130,21 +137,37 @@ public class RoutePoint extends Target implements Serializable{
         return roll;
     }
 
-    public void calculateSpeedTowards(Target o){
-        /* Calculamos la speed que haría falta para llegar hasta un objetivo (o camara) desde nuestro tiempo
-            hasta el tiempo que pide el objetivo
-         */
-        if(o.getTime()<= this.getTime()){
-            throw new IllegalArgumentException("La camara no puede viajar atras en el tiempo");
-        } else {
-            float[] resultado = new float[2];
-            Location.distanceBetween(this.getLatitude(),this.getLongitude(),o.getLatitude(),o.getLongitude(),resultado);
-            speed.setVelocidadNESO(resultado[0]/(o.getTime()-this.getTime()));
-            speed.setDireccion(resultado[1]);
-            speed.setVertical(((o.getHeight()-this.getHeight())/(o.getTime()-this.getTime())));
-        }
+    /**
+     * This method sets the speed of this route so it reaches the specified target in the specified
+     * time.
+     *
+     * Given the next target or RoutePoint, this method sets the speed of this RoutePoint so it points
+     * towards the objective and has a speed so it reaches the objective in the objective's time.
+     * @param o Objective to go towards
+     * @return Speed calculated.
+     */
+    public VelocidadNESO calculateSpeedTowards(Target o){
+
+        float[] resultado = new float[2];
+        Location.distanceBetween(this.getLatitude(),this.getLongitude(),o.getLatitude(),o.getLongitude(),resultado);
+        speed.setVelocidadNESO(resultado[0]/(o.getTime()));
+        speed.setDireccion(resultado[1]);
+        speed.setVertical(((o.getHeight()-this.getHeight())/(o.getTime())));
+
+        return speed;
     }
 
+    /**
+     * This method adjusts the speed at the routepoint to fit the maxSpeed.
+     *
+     * If the module of the speed is greater than maxSpeed, it will set the speeds so the module equals
+     * maxSpeed without changing its direction and then it will return the factor by wich it changed.
+     *
+     * The factor is calculated as the previous module by the max speed.
+     * If the speed is not greater than the maxSpeed, the speed will remain unchanged and the factor will be exactly 1
+     * @param maxSpeed Maximum speed to wich it changes.
+     * @return Change factor.
+     */
     public double fixToMaxSpeed(double maxSpeed){
         /*
         Este método ajusta la speed de la cámara para ajustarse a una speed máxima indicada

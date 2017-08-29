@@ -90,6 +90,10 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
                         .getString("min_height_setting_key","10.0"));
                 double maxHeight = Double.parseDouble(PreferenceManager.getDefaultSharedPreferences(CrearRuta.this)
                         .getString("max_height_setting_key","100.0"));
+                double maxYawSpeed = Double.parseDouble(PreferenceManager.getDefaultSharedPreferences(CrearRuta.this)
+                        .getString("yaw_speed_setting_key","10.0"));
+                double maxPitchSpeed = Double.parseDouble(PreferenceManager.getDefaultSharedPreferences(CrearRuta.this)
+                        .getString("pitch_speed_setting_key","10.0"));
 
                 RecordingRoute.CalculationCompleteListener listener = new RecordingRoute.CalculationCompleteListener() {
                     @Override
@@ -131,7 +135,7 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
                                 .show();
                     }
                 };
-                recordingRoute.calculateRoute(maxSpeed,minHeight,maxHeight,listener);
+                recordingRoute.calculateRoute(maxSpeed,maxYawSpeed,maxPitchSpeed,minHeight,maxHeight,listener);
                 if (recordingRoute.getRouteReady()) {
                     RoutePoint[] route = recordingRoute.getRoute();
                     for (RoutePoint waypoint : route) {
@@ -306,7 +310,6 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
         TextView latitude = (TextView) menu.findViewById(R.id.latitude);
         TextView longitude = (TextView) menu.findViewById(R.id.longitude);
         final EditText height = (EditText) menu.findViewById(R.id.objectiveHeight);
-        TextView previousTime = (TextView) menu.findViewById(R.id.tiempoPrevio);
         final EditText elapsedTime = (EditText) menu.findViewById(R.id.tiempoTardado);
         final Spinner action = (Spinner) menu.findViewById(R.id.accion);
         ArrayAdapter<CharSequence> adapter;
@@ -321,7 +324,6 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
         latitude.setText(String.format("%s", latLng.latitude));
         longitude.setText(String.format("%s", latLng.longitude));
         height.setText("0");
-        previousTime.setText(String.format("%s", recordingRoute.getLastTarget().getTime()));
         elapsedTime.setText("30"); //TODO: Get this from settings
 
         action.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -382,8 +384,7 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         double h = Double.parseDouble(height.getText().toString().trim().replace(",", "."));
-                        double t = recordingRoute.getLastTarget().getTime() +
-                                Double.parseDouble(elapsedTime.getText().toString().trim().replace(",", "."));
+                        double t = Double.parseDouble(elapsedTime.getText().toString().trim().replace(",", "."));
 
                         nTarget.setHeight(h);
                         nTarget.setTime(t);
@@ -543,7 +544,7 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
             tiempo.setVisibility(View.INVISIBLE);
         } else {
             altura.setText(String.format("%.2f", o.getHeight()));
-            tiempo.setText(String.format("%.2f", o.getTime()));
+            tiempo.setText(String.format("%.2f", recordingRoute.getAbsoluteTimeOf(o)));
             accion.setText(o.getAccion().toString().replace("_", " "));
 
             if (o instanceof RoutePoint) {

@@ -35,12 +35,6 @@
         android:inputType="numberDecimal" />
 
     <TextView
-        android:id="@+id/tiempoPrevio"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/tiempoPrevio" />
-
-    <TextView
         android:id="@+id/tiempoTardadoLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

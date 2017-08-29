@@ -41,7 +41,7 @@ public class TecnicaAcimutal extends   TecnicaGrabacion{
         orientacionNESO = 0;
     }
     @Override
-    public TechniqueReport calculateRoute(double maxSpeed,double minHeight, double maxHeight) {
+    public TechniqueReport calculateRoute(double maxSpeed,double maxYawSpeed,double maxPitchSpeed,double minHeight, double maxHeight) {
         boolean minHeightChanged = false;
         boolean maxHeightChanged = false;
         boolean maxSpeedChanged = false;
@@ -88,15 +88,13 @@ public class TecnicaAcimutal extends   TecnicaGrabacion{
             routePoints.add(currentCamera);
             if (routePoints.size()>1){
                 RoutePoint previousCamera = routePoints.get(routePoints.indexOf(currentCamera)-1);
-                previousCamera.calculateSpeedTowards(currentCamera);
-                double speedFactor = previousCamera.fixToMaxSpeed(maxSpeed);
-                if(speedFactor != 1.0){
+                double minTime = RoutePoint.minTimeBetween(previousCamera,currentCamera,maxSpeed,maxYawSpeed,maxPitchSpeed);
+                if (currentCamera.getTime()<minTime){
+                    currentCamera.setTime(minTime);
+                    currentObjective.setTime(minTime);
                     maxSpeedChanged = true;
-                    double time = currentCamera.getTime()-previousCamera.getTime();
-                    time = time * speedFactor;
-                    currentCamera.setTime(previousCamera.getTime()+time);
-                    targets.get(routePoints.indexOf(currentCamera)).setTime(currentCamera.getTime());
                 }
+                previousCamera.calculateSpeedTowards(currentCamera);
             }
         }
         report = new TechniqueReport(this,minHeightChanged,maxHeightChanged,maxSpeedChanged);

@@ -25,6 +25,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.ListIterator;
 
 import es.p32gocamuco.tfgdrone3.R;
@@ -92,7 +93,7 @@ public class RecordingRoute implements Serializable {
         for (Target target : getAllTargets()){
             if (t == target) {found = true;}
             if(found){
-                target.setTime(target.getTime()+time);
+                target.setTime(time);
             }
         }
     }
@@ -100,14 +101,13 @@ public class RecordingRoute implements Serializable {
     public boolean isCurrentlyRecording(){
         Target lastTarget = getLastTarget();
         return lastTarget.getTechnique().getCurrentlyRecording(lastTarget);
-
     }
 
     /**
      * This method calculates the ammount of waypoints present in the route.
      *
      * This method does not calculate the points before return, so in order to get accurate results,
-     * {@link RecordingRoute#calculateRoute(double, double, double)} should be called beforehand.
+     * {@link RecordingRoute#calculateRoute(double, double, double,double, double)} should be called beforehand.
      * @return
      */
     public int getNumberWaypoints(){
@@ -123,7 +123,7 @@ public class RecordingRoute implements Serializable {
      * This method returns all the waypoints in the route.
      *
      * This method does not calculate the points before return, so in order to get accurate results,
-     * {@link RecordingRoute#calculateRoute(double, double, double)} should be called beforehand.
+     * {@link RecordingRoute#calculateRoute(double,double,double, double, double)} should be called beforehand.
      * @return Array of {@link RoutePoint}
      */
     public RoutePoint[] getRoute(){
@@ -197,15 +197,12 @@ public class RecordingRoute implements Serializable {
      * @param minHeight Minimum height allowed in the route.
      * @param maxHeight Maximum height allowed in the route.
      * @return Report with stadistics to the route.
-     * @see TecnicaGrabacion#calculateRoute(double, double, double)
+     * @see TecnicaGrabacion#calculateRoute(double,double,double, double, double)
      */
     public RouteReport calculateRoute(double maxSpeed, double maxYawSpeed, double maxPitchSpeed, double minHeight, double maxHeight){
         RouteReport r = null;
         if(calcRouteAviable()) {
-            double timeChange = 0;
             for (TecnicaGrabacion t : techniques) {
-                addTimeTo(t.getTargets()[0],timeChange);
-                double innitialTime = t.getLastTarget().getTime();
                 if (r == null){
                     TecnicaGrabacion.TechniqueReport techniqueReport = t.calculateRoute(maxSpeed, maxYawSpeed, maxPitchSpeed ,minHeight,maxHeight);
                     r = new RouteReport(techniqueReport);}
@@ -213,7 +210,6 @@ public class RecordingRoute implements Serializable {
                     TecnicaGrabacion.TechniqueReport techniqueReport = t.calculateRoute(maxSpeed, maxYawSpeed, maxPitchSpeed ,minHeight,maxHeight);
                     r.addReport(techniqueReport);
                 }
-                timeChange = t.getLastTarget().getTime()-innitialTime;
 
                 if(techniques.indexOf(t)>=1){
                     RoutePoint previous = techniques.get(techniques.indexOf(t)-1)
@@ -221,24 +217,14 @@ public class RecordingRoute implements Serializable {
                     RoutePoint next = t.getRoutePoints()[0];
 
                     double minTimeElapsed = RoutePoint.minTimeBetween(previous,next,maxSpeed,maxYawSpeed,maxPitchSpeed);
-                    double timeElapsed = next.getTime()-previous.getTime();
+                    double timeElapsed = next.getTime();
 
                     if (timeElapsed < minTimeElapsed){
                         addTimeTo(next,timeElapsed-minTimeElapsed);
+                        r.setMaxSpeedCorrected(true);
                     }
 
                     previous.calculateSpeedTowards(next);
-
-                    /**
-                    double speedFactor = previous.fixToMaxSpeed(maxSpeed);
-                    if (speedFactor != 1) {
-                        double time = next.getTime() - previous.getTime();
-                        double newTime = time * speedFactor;
-                        double timeDiff = newTime - time;
-                        addTimeTo(next,timeDiff);
-                        t.calculateRoute(maxSpeed, minHeight, maxHeight);
-                    }
-                     **/
                 }
             }
 
@@ -335,6 +321,42 @@ public class RecordingRoute implements Serializable {
         }
     }
 
+
+    /**
+     * This method returns the absolute time of a target
+     *
+     * The absolute time is the accumulated sum of all the times of all the previous targets. If the
+     * target inputed is the first or is not in the targets this method will return 0.
+     * @param t Target to get time from
+     * @return Total elapsed time
+     */
+    public double getAbsoluteTimeOf(Target t){
+        boolean contains = false;
+        int index = 0;
+        double time = 0;
+        Target[] targets;
+        if (t instanceof RoutePoint){
+            targets = getRoute();
+        } else {
+            targets=getAllTargets();
+        }
+        for (Target target : targets){
+            if (target == t){
+                contains = true;
+                break;
+            }
+            index++;
+        }
+
+        if (contains){
+            for (int iterator = 1; iterator<=index; iterator++){
+                time += targets[iterator].getTime();
+            }
+        }
+        return time;
+    }
+
+
     /**
      * Method used to easily display a short toast in the specified context
      * @param string Message to display
@@ -374,11 +396,12 @@ public class RecordingRoute implements Serializable {
         }
 
         @Override
-        public void placeAtMap(GoogleMap gMap) {
-            super.placeAtMap(gMap);
+        public Marker placeAtMap(GoogleMap gMap) {
+            Marker marker = super.placeAtMap(gMap);
             if (circle != null) {circle.remove();}
             circleOptions.center(this.getLatLng());
             circle = gMap.addCircle(circleOptions);
+            return marker;
         }
     }
 
@@ -464,11 +487,11 @@ public class RecordingRoute implements Serializable {
 
     /**
      * Returns wether the route is ready to be executed or not.
-     * It is set to true once {@link RecordingRoute#calculateRoute(double, double, double)} is executed succesfully.
-     * It is set to false once{@link RecordingRoute#calculateRoute(double, double, double)} is not executed succesfully.
+     * It is set to true once {@link RecordingRoute#calculateRoute(double,double,double, double, double)} is executed succesfully.
+     * It is set to false once{@link RecordingRoute#calculateRoute(double,double,double, double, double)} is not executed succesfully.
      * It is set to false once{@link RecordingRoute#calcRouteAviable()} returns false.
      *
-     * @return
+     * @return Wether the route is ready to execute.
      */
     public boolean getRouteReady(){
         return this.routeReady;
@@ -585,10 +608,14 @@ public class RecordingRoute implements Serializable {
         public boolean isMaxSpeedCorrected() {
             return maxSpeedCorrected;
         }
+
+        public void setMaxSpeedCorrected(boolean maxSpeedCorrected) {
+            this.maxSpeedCorrected = maxSpeedCorrected;
+        }
     }
 
     /**
-     * This interface is used by the {@link RecordingRoute#calculateRoute(double, double, double, CalculationCompleteListener)} method
+     * This interface is used by the {@link RecordingRoute#calculateRoute(double,double,double, double, double, CalculationCompleteListener)} method
      * to allow the implementation of an action inmediatly upon route calculation.
      */
     public interface CalculationCompleteListener{

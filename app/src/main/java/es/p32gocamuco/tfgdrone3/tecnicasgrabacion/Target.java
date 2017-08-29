@@ -16,7 +16,11 @@ import com.google.maps.android.SphericalUtil;
 
 import java.io.Serializable;
 
-/*
+/**
+ * Target Class
+ *
+ * This class represents a target to record. A target is defined by its position, height, time, action and the
+ * technique it belongs to.
  * Created by Manuel Gómez Castro on 1/07/17.
  */
 
@@ -52,7 +56,7 @@ public class Target implements Serializable {
         accion = Acciones.NADA;
         currentTechnique = new TecnicaGrabacion(false) {
             @Override
-            public TechniqueReport calculateRoute(double m, double n, double x) {
+            public TechniqueReport calculateRoute(double m, double n, double x, double y, double z) {
                 return null;
             }
 
@@ -81,20 +85,51 @@ public class Target implements Serializable {
         accion = Acciones.NADA;
     }
 
+    /**
+     *This method returns the latitude of the target
+     * @return Latitude of the target
+     */
     public double getLatitude(){
         return this.latitude;
     }
+
+    /**
+     * This method returns the longitude of the target
+     * @return Longitude of the target
+     */
     public double getLongitude(){
         return this.longitude;
     }
+
+    /**
+     * This method retursn the latlng of the target as a {@link LatLng}
+     * @return Latitude and longitude
+     */
     public LatLng getLatLng(){
         return new LatLng(latitude,longitude);
     }
+
+    /**
+     * This method returns the height of the target.
+     * Height is measured relative to the takeoff position since it will be compared against the drone's
+     * measured height wich is relative to takeoff.
+     * @return Height of the target
+     */
     public double getHeight(){
         return height;
     }
+
+    /**
+     * This method will return the time of the target
+     * The time is measured relative to the previous target.
+     * @return Time of the target
+     */
     public double getTime() {return time;}
 
+    /**
+     * This method returns the action taken at the target
+     * @return Action taken at the target
+     */
     public Acciones getAccion() {
         return accion;
     }
@@ -131,10 +166,19 @@ public class Target implements Serializable {
         return markerOptions;
     }
 
-    public void placeAtMap(GoogleMap gMap){
+    /**
+     * This method uses the information of the target to place it in the specified map.
+     *
+     * The marker added will have as its tag a reference to this object.
+     * @see Marker#getTag()
+     * @param gMap Map on wich to place the marker
+     * @return Marker placed at the map
+     */
+    public Marker placeAtMap(GoogleMap gMap){
         if (this.marker != null) {this.marker.remove();} //Si estamos cambiando el marcador de este objetivo, debemos borrar el anterior del mapa.
         this.marker = gMap.addMarker(this.markerOptions);
         this.marker.setTag(this);
+        return this.marker;
     }
 
     public void desplazar(double distancia, double direccion){
@@ -150,11 +194,15 @@ public class Target implements Serializable {
         this.currentTechnique = currentTechnique;
     }
 
+    /**
+     * Returns the {@link TecnicaGrabacion} that uses this target
+     * @return The recordingTechnique that uses this target.
+     */
     public TecnicaGrabacion getTechnique() {
         return currentTechnique;
     }
 
-    public void initMarkerOptions(){
+    protected void initMarkerOptions(){
         this.markerOptions = new MarkerOptions();
         this.markerOptions.position(new LatLng(this.latitude,this.longitude));
         this.markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
