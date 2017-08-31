@@ -59,6 +59,17 @@
     <string name="yaw_speed_setting">Velocidad máxima de giro (Yaw)</string>
     <string name="pitch_speed_setting">Velocidad máxima de giro (pitch)</string>
 
+    <array name="drone_information">
+        <item>Nombre</item>
+        <item>Modelo</item>
+        <item>Firmware</item>
+        <item>Estado de conexión</item>
+    </array>
+    <array name="connection_modes">
+        <item>Conexión USB</item>
+        <item>Conexión via Bridge App</item>
+        <item>No conectado</item>
+    </array>
     <!-- Example General settings -->
     <string name="pref_header_general">General</string>
 
