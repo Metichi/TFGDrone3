@@ -187,6 +187,7 @@ public class Target implements Serializable {
         La dirección es 0º norte, 90 este, 180 sur y 270 oeste.
          */
         LatLng position = SphericalUtil.computeOffset(this.getLatLng(),distancia,direccion);
+        this.setPosition(position);
         this.markerOptions.position(position);
     }
 

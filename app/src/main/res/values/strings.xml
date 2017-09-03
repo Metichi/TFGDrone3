@@ -146,7 +146,8 @@
     <string name="calcularCR">Calcular ruta</string>
     <string name="saveCR">Guardar</string>
     <string name="addHome">Localización Home</string>
-    <string name="addAcimutal">Tecnica Acimutal</string>
+    <string name="addAcimutal">Técnica Acimutal</string>
+    <string name="addCrane">Técnica Picado</string>
     <string name="addItemtoMapTitle">Añadir objeto al mapa</string>
     <string name="finalizar">Finalizar</string>
     <string name="initRuta">Iniciar ruta</string>

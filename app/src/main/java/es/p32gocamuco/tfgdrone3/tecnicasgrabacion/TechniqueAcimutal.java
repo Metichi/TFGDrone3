@@ -15,30 +15,37 @@ import java.util.ListIterator;
 
 import es.p32gocamuco.tfgdrone3.R;
 
-/*
+/**
+ * This class represents an acimutal technique
+ *
+ * In the acimutal technique, the camera is placed directly on top of the target at an specified height.
+ * This technique will consider one height above the targets and follow the line they draw.
+ *
+ * There will be two methods to determine the bearing, it will either keep a constant heading relative
+ * to true north or it will point towards the next target in the route, this is specified in {@link TechniqueAcimutal#setBearingFollowsRoute(boolean)}
  * Created by Manuel Gómez Castro on 2/07/17.
  */
 
-public class TecnicaAcimutal extends   TecnicaGrabacion{
-    private double alturaSobreObjetivo;
-    private double orientacionNESO; //0 si el marco superior de la imagen coincide con el norte
-    private boolean orientacionSegunObjetivo; //La cámara se ajusta para que el límite superior apunte al siguiente objetivo. No se tiene en cuenta si sólo hay un punto.
+public class TechniqueAcimutal extends  TecnicaGrabacion{
+    private double heightOverTarget;
+    private double bearing; //0 si el marco superior de la imagen coincide con el norte
+    private boolean bearingFollowsRoute; //La cámara se ajusta para que el límite superior apunte al siguiente objetivo. No se tiene en cuenta si sólo hay un punto.
     private TechniqueReport report;
 
 
-    public double getAlturaSobreObjetivo() {
-        return alturaSobreObjetivo;
+    public double getHeightOverTarget() {
+        return heightOverTarget;
     }
 
-    public double getOrientacionNESO() {
-        return orientacionNESO;
+    public double getBearing() {
+        return bearing;
     }
 
-    public TecnicaAcimutal(boolean startsWhileRecording){
+    public TechniqueAcimutal(boolean startsWhileRecording){
         super(startsWhileRecording);
-        alturaSobreObjetivo = 10;
-        orientacionSegunObjetivo = false;
-        orientacionNESO = 0;
+        heightOverTarget = 10;
+        bearingFollowsRoute = false;
+        bearing = 0;
     }
     @Override
     public TechniqueReport calculateRoute(double maxSpeed,double maxYawSpeed,double maxPitchSpeed,double minHeight, double maxHeight) {
@@ -46,7 +53,7 @@ public class TecnicaAcimutal extends   TecnicaGrabacion{
         boolean maxHeightChanged = false;
         boolean maxSpeedChanged = false;
 
-        if (routePoints.size()>0){this.deleteWaypoints();}
+        if (routePoints.size()>0){this.deleteRoutePoints();}
         ListIterator<Target> objectiveIterator = targets.listIterator();
         ListIterator<RoutePoint> cameraIterator; //No se define el iterador todavía porque aún no se ha calculado la posición de las cámaras.
         RoutePoint currentCamera;
@@ -60,7 +67,7 @@ public class TecnicaAcimutal extends   TecnicaGrabacion{
             currentCamera = new RoutePoint(currentObjective);
 
             //Calculo de la posición de la cámara.
-            currentCamera.setHeight(currentObjective.getHeight()+alturaSobreObjetivo);
+            currentCamera.setHeight(currentObjective.getHeight()+ heightOverTarget);
             if (currentCamera.getHeight() > maxHeight){
                 currentCamera.setHeight(maxHeight);
                 maxHeightChanged = true;
@@ -73,8 +80,8 @@ public class TecnicaAcimutal extends   TecnicaGrabacion{
 
             //Calculo de el ángulo de la camara
             currentCamera.setPitch(-90);
-            if(!orientacionSegunObjetivo || (targets.size()==1)){
-                currentCamera.setYaw(orientacionNESO);
+            if(!bearingFollowsRoute || (targets.size()==1)){
+                currentCamera.setYaw(bearing);
             } else {
                 if(!objectiveIterator.hasNext()){
                     currentCamera.setYaw(routePoints.get(routePoints.size()-1).getYaw());
@@ -101,39 +108,39 @@ public class TecnicaAcimutal extends   TecnicaGrabacion{
         return report;
     }
 
-    public void setAlturaSobreObjetivo(double alturaSobreObjetivo) {
-        this.alturaSobreObjetivo = alturaSobreObjetivo;
+    public void setHeightOverTarget(double heightOverTarget) {
+        this.heightOverTarget = heightOverTarget;
     }
 
-    public void setOrientacionNESO(double orientacionNESO) {
-        this.orientacionNESO = orientacionNESO;
+    public void setBearing(double bearing) {
+        this.bearing = bearing;
     }
 
-    public void setOrientacionSegunObjetivo(boolean orientacionSegunObjetivo) {
-        this.orientacionSegunObjetivo = orientacionSegunObjetivo;
+    public void setBearingFollowsRoute(boolean orientacionSegunObjetivo) {
+        this.bearingFollowsRoute = orientacionSegunObjetivo;
     }
 
     @Override
     public View getInflatedLayout(LayoutInflater inflater){
         LinearLayout menu = (LinearLayout) inflater.inflate(R.layout.add_acimutal_menu, null);
-        final EditText altura = (EditText) menu.findViewById(R.id.alturaSobreObjetivo);
-        final EditText NESO = (EditText) menu.findViewById(R.id.orientacionNESO);
+        final EditText altura = (EditText) menu.findViewById(R.id.heightOverTarget);
+        final EditText NESO = (EditText) menu.findViewById(R.id.bearing);
         final ToggleButton toggleSigueRuta = (ToggleButton) menu.findViewById(R.id.toggleSigueRuta);
         final TextView orientacionLabel = (TextView) menu.findViewById(R.id.orientacionNESOLabel);
 
-        altura.setText(String.format("%s", this.getAlturaSobreObjetivo()));
-        NESO.setText(String.format("%s", this.getOrientacionNESO()));
+        altura.setText(String.format("%s", this.getHeightOverTarget()));
+        NESO.setText(String.format("%s", this.getBearing()));
 
         toggleSigueRuta.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 compoundButton.setChecked(b);
                 if (b) {
-                    TecnicaAcimutal.this.setOrientacionSegunObjetivo(true);
+                    TechniqueAcimutal.this.setBearingFollowsRoute(true);
                     NESO.setVisibility(View.GONE);
                     orientacionLabel.setVisibility(View.GONE);
                 } else {
-                    TecnicaAcimutal.this.setOrientacionSegunObjetivo(false);
+                    TechniqueAcimutal.this.setBearingFollowsRoute(false);
                     orientacionLabel.setVisibility(View.VISIBLE);
                     NESO.setVisibility(View.VISIBLE);
                 }
@@ -154,9 +161,9 @@ public class TecnicaAcimutal extends   TecnicaGrabacion{
             @Override
             public void afterTextChanged(Editable editable) {
                 if (altura.getText().toString().trim().length() == 0) {
-                    TecnicaAcimutal.this.setAlturaSobreObjetivo(10);
+                    TechniqueAcimutal.this.setHeightOverTarget(10);
                 } else {
-                    TecnicaAcimutal.this.setAlturaSobreObjetivo(Double.parseDouble(altura.getText().toString().replace(",", ".")));
+                    TechniqueAcimutal.this.setHeightOverTarget(Double.parseDouble(altura.getText().toString().replace(",", ".")));
                 }
             }
         });
@@ -175,9 +182,9 @@ public class TecnicaAcimutal extends   TecnicaGrabacion{
             @Override
             public void afterTextChanged(Editable editable) {
                 if (NESO.getText().toString().trim().length() == 0) {
-                    TecnicaAcimutal.this.setOrientacionNESO(0);
+                    TechniqueAcimutal.this.setBearing(0);
                 } else {
-                    TecnicaAcimutal.this.setOrientacionNESO(Double.parseDouble(NESO.getText().toString().replace(",", ".")));
+                    TechniqueAcimutal.this.setBearing(Double.parseDouble(NESO.getText().toString().replace(",", ".")));
                 }
             }
         });

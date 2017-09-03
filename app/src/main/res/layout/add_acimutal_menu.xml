@@ -14,7 +14,7 @@
         tools:text="@string/alturaSobreObjetivoLabel" />
 
     <EditText
-        android:id="@+id/alturaSobreObjetivo"
+        android:id="@+id/heightOverTarget"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
@@ -43,7 +43,7 @@
         tools:text="@string/orientacionNESOLabel" />
 
     <EditText
-        android:id="@+id/orientacionNESO"
+        android:id="@+id/bearing"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"

@@ -81,7 +81,7 @@ public abstract class TecnicaGrabacion implements Serializable {
         }
     }
 
-    public void deleteWaypoints() {
+    public void deleteRoutePoints() {
         routePoints.clear();
     }
 

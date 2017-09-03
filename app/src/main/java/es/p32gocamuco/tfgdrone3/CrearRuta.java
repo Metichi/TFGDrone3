@@ -7,9 +7,11 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -27,11 +29,15 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import dji.sdk.base.BaseProduct;
 import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.RoutePoint;
 import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Target;
 import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.RecordingRoute;
-import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.TecnicaAcimutal;
+import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.TechniqueAcimutal;
+import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.TechniqueCrane;
 import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.TecnicaGrabacion;
 
 public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
@@ -417,8 +423,9 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
     private void displayAddMenu() {
         ScrollView addMenu = (ScrollView) getLayoutInflater().inflate(R.layout.add_menu, null);
         Button addHome = (Button) addMenu.findViewById(R.id.addHome);
-        Button addAcimutal = (Button) addMenu.findViewById(R.id.addAcimutal);
+        RecyclerView techniqueButtons = (RecyclerView) addMenu.findViewById(R.id.techniqueButtons);
         final AlertDialog alertdialog;
+
 
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -431,8 +438,32 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
                 updateUI();
             }
         });
-
         alertdialog = builder.create();
+
+        //Creation of the recyclerview
+        techniqueButtons.setLayoutManager(new LinearLayoutManager(this));
+        HashMap<String,View.OnClickListener> techniqueListeners = new HashMap<>();
+        techniqueListeners.put(getString(R.string.addAcimutal), new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                TechniqueAcimutal newTecnique = new TechniqueAcimutal(recordingRoute.isCurrentlyRecording());
+                showAddTechniqueMenu(newTecnique,getString(R.string.addAcimutal));
+                alertdialog.dismiss();
+                updateUI();
+            }
+        });
+        techniqueListeners.put(getString(R.string.addCrane), new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                TechniqueCrane newTecnique = new TechniqueCrane(recordingRoute.isCurrentlyRecording());
+                showAddTechniqueMenu(newTecnique,getString(R.string.addCrane));
+                alertdialog.dismiss();
+                updateUI();
+            }
+        });
+
+        techniqueButtons.setAdapter(new TechniqueAdapter(techniqueListeners));
+
         alertdialog.show();
 
         addHome.setOnClickListener(new View.OnClickListener() {
@@ -440,15 +471,6 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
             public void onClick(View view) {
                 alertdialog.dismiss();
                 settingHome = true;
-                updateUI();
-            }
-        });
-        addAcimutal.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                TecnicaAcimutal newTecnique = new TecnicaAcimutal(recordingRoute.isCurrentlyRecording());
-                showAddTechniqueMenu(newTecnique,getString(R.string.addAcimutal));
-                alertdialog.dismiss();
                 updateUI();
             }
         });
@@ -574,5 +596,47 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
         }
 
         return infoWindow;
+    }
+
+    /**
+     * This adapter is used to populate the addMenu with buttons for each technique aviable.
+      */
+    public static class TechniqueAdapter extends RecyclerView.Adapter<TechniqueAdapter.ViewHolder>{
+        HashMap<String,View.OnClickListener> techniqueListeners;
+        ArrayList<String> titles;
+
+        public static class ViewHolder extends RecyclerView.ViewHolder{
+            public Button techniqueButton;
+            public ViewHolder(Button b){
+                super(b);
+                techniqueButton = b;
+            }
+        }
+
+        public TechniqueAdapter(HashMap<String,View.OnClickListener> techniqueListeners){
+            this.techniqueListeners = techniqueListeners;
+            titles = new ArrayList<>(techniqueListeners.keySet());
+        }
+
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            Button techniqueButton = new Button(parent.getContext());
+            TechniqueAdapter.ViewHolder vh = new ViewHolder(techniqueButton);
+            return vh;
+        }
+
+        @Override
+        public void onBindViewHolder(ViewHolder holder, int position) {
+            String title = titles.get(position);
+            View.OnClickListener listener = techniqueListeners.get(title);
+
+            holder.techniqueButton.setText(title);
+            holder.techniqueButton.setOnClickListener(listener);
+        }
+
+        @Override
+        public int getItemCount() {
+            return titles.size();
+        }
     }
 }
