@@ -98,4 +98,60 @@
         android:layout_height="wrap_content"
         android:ems="10"
         android:inputType="numberDecimal" />
+
+    <RadioGroup
+        android:id="@+id/speedSetting"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_column="0"
+        android:layout_columnSpan="4"
+        android:checkedButton="@+id/mediumSpeed"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/lowSpeed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Lento" />
+
+        <RadioButton
+            android:id="@+id/mediumSpeed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Medio" />
+
+        <RadioButton
+            android:id="@+id/highSpeed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Rápido" />
+
+    </RadioGroup>
+
+    <RadioGroup
+        android:id="@+id/clockwiseSetting"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_column="0"
+        android:layout_columnSpan="4"
+        android:checkedButton="@+id/clockwise"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/clockwise"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Horario" />
+
+        <RadioButton
+            android:id="@+id/counterclockwise"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Antihorario" />
+    </RadioGroup>
 </GridLayout>
