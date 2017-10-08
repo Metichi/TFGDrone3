@@ -38,6 +38,7 @@ import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.Target;
 import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.RecordingRoute;
 import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.TechniqueAcimutal;
 import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.TechniqueCrane;
+import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.TechniqueOrbit;
 import es.p32gocamuco.tfgdrone3.tecnicasgrabacion.TecnicaGrabacion;
 
 public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
@@ -457,6 +458,15 @@ public class CrearRuta extends FragmentActivity implements OnMapReadyCallback {
             public void onClick(View view) {
                 TechniqueCrane newTecnique = new TechniqueCrane(recordingRoute.isCurrentlyRecording());
                 showAddTechniqueMenu(newTecnique,getString(R.string.addCrane));
+                alertdialog.dismiss();
+                updateUI();
+            }
+        });
+        techniqueListeners.put(getString(R.string.addOrbit), new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                TechniqueOrbit newTechnique = new TechniqueOrbit(recordingRoute.isCurrentlyRecording());
+                showAddTechniqueMenu(newTechnique,getString(R.string.addOrbit));
                 alertdialog.dismiss();
                 updateUI();
             }

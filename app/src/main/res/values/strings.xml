@@ -148,6 +148,7 @@
     <string name="addHome">Localización Home</string>
     <string name="addAcimutal">Técnica Acimutal</string>
     <string name="addCrane">Técnica Picado</string>
+    <string name="addOrbit">Técnica Orbital</string>
     <string name="addItemtoMapTitle">Añadir objeto al mapa</string>
     <string name="finalizar">Finalizar</string>
     <string name="initRuta">Iniciar ruta</string>

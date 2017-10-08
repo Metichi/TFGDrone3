@@ -34,11 +34,11 @@ public class TechniqueOrbit extends TecnicaGrabacion {
 
     public TechniqueOrbit(Boolean b){
         super(b);
-        radius = 0;
-        heightOverTarget = 0;
+        radius = 10;
+        heightOverTarget = 10;
         entryAngle = 0;
         exitAngle = 0;
-        laps = 0;
+        laps = 1;
         polygonPoints = 10;
         speed = MEDIUM_SPEED;
         clockwise = true;
