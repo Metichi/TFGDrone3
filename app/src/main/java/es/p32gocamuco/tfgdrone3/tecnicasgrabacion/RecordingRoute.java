@@ -72,6 +72,11 @@ public class RecordingRoute implements Serializable {
             }
         }
     }
+
+    /**
+     * Removes a tech
+     * @param t
+     */
     public void removeTechnique(TecnicaGrabacion t){
         techniques.remove(t);
     }
@@ -98,6 +103,13 @@ public class RecordingRoute implements Serializable {
         }
     }
 
+    /**
+     * Checks wether the last point it the route is recording
+     * A target is considered to be recording if it either innitiates a recording or a target prior
+     * has innitiated a recording and no target between has stopped it.
+     * See {@link TecnicaGrabacion#getCurrentlyRecording(Target)}
+     * @return true if currently recording
+     */
     public boolean isCurrentlyRecording(){
         Target lastTarget = getLastTarget();
         return lastTarget.getTechnique().getCurrentlyRecording(lastTarget);
